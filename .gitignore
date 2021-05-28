@@ -1,0 +1,5 @@
+# Makefiles
+/build/*
+
+# Mac 
+.DS_Store
