@@ -99,6 +99,8 @@ public:
 	bool fixLookAt = false;
 	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
 	vec3 fixedPoint;
+	float camRadius = 0.3;
+	vec3 spherePos = vec3(0, 0, camRadius);
 
 	// Movement
 	bool goLeft = false;
@@ -242,20 +244,32 @@ public:
 
 	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) 
 	{
-		if (!fixLookAt) {
-			// constrain phi between -80 and 80 degrees
-			float constraint = 80 * glm::pi<float>()/180; 
-			float sensitivity = 16;
-			if (gPhi + deltaY/sensitivity < constraint && 
-				gPhi + deltaY/sensitivity > -constraint) {
-				gPhi += deltaY/sensitivity;
-			}
-			gTheta -= deltaX/sensitivity; 
-			float x = cos(gPhi)*cos(gTheta);
-			float y = sin(gPhi);
-			float z = cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
-			g_view = glm::normalize(vec3(x, y, z));
+		// if (!fixLookAt) {
+		// 	// constrain phi between -80 and 80 degrees
+		// 	float constraint = 80 * glm::pi<float>()/180; 
+		// 	float sensitivity = 16;
+			// if (gPhi + deltaY/sensitivity < constraint && 
+			// 	gPhi + deltaY/sensitivity > -constraint) {
+			// 	gPhi += deltaY/sensitivity;
+			// }
+		// 	gTheta -= deltaX/sensitivity; 
+		// 	float x = cos(gPhi)*cos(gTheta);
+		// 	float y = sin(gPhi);
+		// 	float z = cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+		// 	g_view = glm::normalize(vec3(x, y, z));
+		// }
+		
+		float constraint = 30 * PI/180; // constrain phi between -30 and 30 degrees
+		float sensitivity = 30; // bigger = less sensitive
+		if (gPhi + deltaY/sensitivity < constraint && 
+			gPhi + deltaY/sensitivity > -constraint) {
+			gPhi += deltaY/sensitivity;
 		}
+		gTheta -= deltaX/sensitivity; 
+		float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
+		float y = camRadius*sin(gPhi);
+		float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+		spherePos = vec3(-x, -y, -z);
 	}
 
 	void init(const std::string& resourceDirectory)
@@ -669,12 +683,13 @@ public:
    	/* Camera controls */
 	void SetView(shared_ptr<Program>  shader) {
 		glm::mat4 Cam;
-		if (enabledFixedTour && fixLookAt) {
-			Cam = glm::lookAt(g_eye, fixedPoint, g_up); // During the tour, keep lookAt at fixedPoint
-		} else {
-			// Cam = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
-			Cam = glm::lookAt(g_eye, fixedPoint, g_up); 
-		}
+		// if (enabledFixedTour && fixLookAt) {
+		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); // During the tour, keep lookAt at fixedPoint
+		// } else {
+		// 	// Cam = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
+		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); 
+		// }
+		Cam = glm::lookAt(fixedPoint + spherePos, fixedPoint, g_up); 
   		glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(Cam));
 	}
 
@@ -707,8 +722,8 @@ public:
 		if (goCamera) {
 			if (!splinepath[0].isDone()){
 				splinepath[0].update(frametime);
-				// horse_pos = splinepath[0].getPosition();
-				g_eye = splinepath[0].getPosition();
+				horse_pos = splinepath[0].getPosition();
+				// g_eye = splinepath[0].getPosition();
 			// } else if (!splinepath[1].isDone()) {
 			// 	splinepath[1].update(frametime);
 			// 	g_eye = splinepath[1].getPosition();
