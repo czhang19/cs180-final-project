@@ -77,7 +77,13 @@ public:
 	float gallopHeight = 0; 
 	float gallopAngle = 0;
 
-	// Camera
+	/* Camera motion/navigation
+		Mode 0 = normal WASD movement, scroll to look around
+		Mode 1 = no WASD, scroll to rotate around horse
+	*/
+	int mode = 0; 
+
+	// Mode 0 camera
 	float gPhi = 0;
 	float gTheta = 0;
 	float speed = 0.001; // 0.1;
@@ -91,24 +97,24 @@ public:
 	// vec3 horse_pos = vec3(-2.8,-0.8,3.8); // assume y is the ground height
 	vec3 horse_pos; // horse_pos is horse's position on the splinepath
 	vec2 horse_start = vec2(-2.8,3.8); // start pos x, z
-	
-	// Cinematic tour
-	Spline splinepath[1];
-	bool goCamera = false;
-	bool enabledFixedTour = false;
-	bool fixLookAt = false;
-	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
-	vec3 fixedPoint;
-	float camRadius = 0.3;
-	vec3 spherePos = vec3(0, 0, camRadius);
 
-	// Movement
+	// Mode 0 movement
 	bool goLeft = false;
 	bool goRight = false;
 	bool goBack = false;
 	bool goFront = false;
 	bool goUp = false;
-	bool goDown = false; 
+	bool goDown = false;
+
+	// Mode 1 cinematic tour
+	Spline splinepath[1];
+	bool goCamera = false;
+	// bool enabledFixedTour = false;
+	// bool fixLookAt = false;
+	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
+	vec3 fixedPoint;
+	float camRadius = 0.3;
+	vec3 spherePos = vec3(0, 0, camRadius);
 
 	// Random scenery
 	time_t rseed; 
@@ -119,16 +125,88 @@ public:
 		{
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
-		// // toggle move speed
-		// if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-		// 	speed = 0.05;
-		// }
-		// if (key == GLFW_KEY_2 && action == GLFW_PRESS){
-		// 	speed = 0.1;
-		// }
-		// if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-		// 	speed = 0.5;
-		// }
+		
+		if (mode == 0) {
+			// toggle move speed
+			if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+				speed = 0.001;
+			}
+			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+				speed = 0.01;
+			}
+			if (key == GLFW_KEY_3 && action == GLFW_PRESS){
+				speed = 0.05;
+			}
+			if (action == GLFW_PRESS) {
+				if (key == GLFW_KEY_A) // strafe left
+					goLeft = true;
+				if (key == GLFW_KEY_D) // strafe right
+					goRight = true;
+				if (key == GLFW_KEY_S) // dolly backward
+					goBack = true;
+				if (key == GLFW_KEY_W) // dolly forward
+					goFront = true;
+				if (key == GLFW_KEY_Q) // go up
+					goUp = true;
+				if (key == GLFW_KEY_E) // go down
+					goDown = true;
+			} else if (action == GLFW_RELEASE) {
+				if (key == GLFW_KEY_A)
+					goLeft = false;
+				if (key == GLFW_KEY_D)
+					goRight = false;
+				if (key == GLFW_KEY_S) 
+					goBack = false;
+				if (key == GLFW_KEY_W) 
+					goFront = false;
+				if (key == GLFW_KEY_Q) 
+					goUp = false;
+				if (key == GLFW_KEY_E) 
+					goDown = false;
+			}
+			// if (key == GLFW_KEY_A) { // strafe left
+			// 	if (action == GLFW_PRESS) {
+			// 		goLeft = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goLeft = false;
+			// 	}
+			// }
+			// if (key == GLFW_KEY_D) { // strafe right
+			// 	if (action == GLFW_PRESS) {
+			// 		goRight = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goRight = false;
+			// 	}
+			// }
+			// if (key == GLFW_KEY_S) { // dolly backward
+			// 	if (action == GLFW_PRESS) {
+			// 		goBack = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goBack = false;
+			// 	}
+			// }
+			// if (key == GLFW_KEY_W) { // dolly forward
+			// 	if (action == GLFW_PRESS) {
+			// 		goFront = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goFront = false;
+			// 	}
+			// }
+			// if (key == GLFW_KEY_Q && action == GLFW_PRESS){ // go up
+			// 	if (action == GLFW_PRESS) {
+			// 		goUp = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goUp = false;
+			// 	}
+			// }
+			// if (key == GLFW_KEY_E && action == GLFW_PRESS){ // go down
+			// 	if (action == GLFW_PRESS) {
+			// 		goDown = true;
+			// 	} else if (action == GLFW_RELEASE) {
+			// 		goDown = false;
+			// 	}
+			// }
+		}
 		// User first-person movement
 		// if (key == GLFW_KEY_A && action == GLFW_PRESS) { // strafe left
 		// 	g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
@@ -142,59 +220,21 @@ public:
 		// if (key == GLFW_KEY_W && action == GLFW_PRESS) { // dolly forward
 		// 	g_eye += speed * g_view; 
 		// }
-		// toggle move speed
-		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-			speed = 0.0005;
-		}
-		if (key == GLFW_KEY_2 && action == GLFW_PRESS){
-			speed = 0.001;
-		}
-		if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-			speed = 0.002;
-		}
-		if (key == GLFW_KEY_A) { // rotate left
-			if (action == GLFW_PRESS) {
-				goLeft = true;
-			} else if (action == GLFW_RELEASE) {
-				goLeft = false;
-			}
-		}
-		if (key == GLFW_KEY_D) { // rotate right
-			if (action == GLFW_PRESS) {
-				goRight = true;
-			} else if (action == GLFW_RELEASE) {
-				goRight = false;
-			}
-		}
-		if (key == GLFW_KEY_S) { // rotate down
-			if (action == GLFW_PRESS) {
-				goDown = true;
-			} else if (action == GLFW_RELEASE) {
-				goDown = false;
-			}
-		}
-		if (key == GLFW_KEY_W) { // rotate up
-			if (action == GLFW_PRESS) {
-				goUp = true;
-			} else if (action == GLFW_RELEASE) {
-				goUp = false;
-			}
-		}
 		// Update positional light direction, clamping light angle
-		if (key == GLFW_KEY_Q && action == GLFW_PRESS){
-			if (lightAngle < 140) 
-				lightAngle += 10; 
-		}
-		if (key == GLFW_KEY_E && action == GLFW_PRESS){
-			if (lightAngle > 40) 
-				lightAngle -= 10; 
-		}
+		// if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+		// 	if (lightAngle < 140) 
+		// 		lightAngle += 10; 
+		// }
+		// if (key == GLFW_KEY_E && action == GLFW_PRESS){
+		// 	if (lightAngle > 40) 
+		// 		lightAngle -= 10; 
+		// }
 		// Toggle fixed tour (either look at fixed point or allow look around during animation)
-		if (key == GLFW_KEY_L && action == GLFW_PRESS){
-			// Only allow toggling if not currently in tour
-			if (!goCamera) 
-				enabledFixedTour = !enabledFixedTour; 
-		}
+		// if (key == GLFW_KEY_L && action == GLFW_PRESS){
+		// 	// Only allow toggling if not currently in tour
+		// 	if (!goCamera) 
+		// 		enabledFixedTour = !enabledFixedTour; 
+		// }
 		// Debugging tool to determine current eye location
 		if (key == GLFW_KEY_P && action == GLFW_PRESS){
 			cout << "Eye at: " << g_eye.x << ", " << g_eye.y << ", " << g_eye.z << endl;
@@ -207,22 +247,44 @@ public:
 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
 		// Start and stop cinematic tour
-		if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-			goCamera = !goCamera;
-			if (enabledFixedTour) { 
-				if (goCamera) { 
-					// Start tour
-					fixLookAt = true;
-				} else {
-					// Pause tour
-					fixLookAt = false;
-					// Update camera variables to match current view
-					vec3 direction = glm::normalize(fixedPoint - g_eye);
-					gPhi = asin(direction.y);
-					gTheta = atan2(direction.z, direction.x);
-					g_view = glm::normalize(fixedPoint - g_eye);
-				}
-			}	
+		if (mode == 1) {
+			if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+				goCamera = !goCamera;
+				// if (enabledFixedTour) { 
+				// 	if (goCamera) { 
+				// 		// Start tour
+				// 		fixLookAt = true;
+				// 	} else {
+				// 		// Pause tour
+				// 		fixLookAt = false;
+				// 		// Update camera variables to match current view
+				// 		vec3 direction = glm::normalize(fixedPoint - g_eye);
+				// 		gPhi = asin(direction.y);
+				// 		gTheta = atan2(direction.z, direction.x);
+				// 		g_view = glm::normalize(fixedPoint - g_eye);
+				// 	}
+				// }	
+			}
+		}
+		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+			if (mode == 0) {
+				mode = 1;
+				gPhi = 0;
+				gTheta = 0;
+				g_eye = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z+0.3);
+				fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
+				float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
+				float y = camRadius*sin(gPhi);
+				float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+				spherePos = vec3(-x, -y, -z);
+			} else if (mode == 1) {
+				mode = 0;
+				g_eye = fixedPoint + spherePos;
+				vec3 direction = glm::normalize(fixedPoint - g_eye);
+				gPhi = asin(direction.y);
+				gTheta = atan2(direction.z, direction.x);
+				g_view = glm::normalize(fixedPoint - g_eye);
+			}
 		}
 	}
 
@@ -244,32 +306,32 @@ public:
 
 	void scrollCallback(GLFWwindow* window, double deltaX, double deltaY) 
 	{
-		// if (!fixLookAt) {
-		// 	// constrain phi between -80 and 80 degrees
-		// 	float constraint = 80 * glm::pi<float>()/180; 
-		// 	float sensitivity = 16;
-			// if (gPhi + deltaY/sensitivity < constraint && 
-			// 	gPhi + deltaY/sensitivity > -constraint) {
-			// 	gPhi += deltaY/sensitivity;
-			// }
-		// 	gTheta -= deltaX/sensitivity; 
-		// 	float x = cos(gPhi)*cos(gTheta);
-		// 	float y = sin(gPhi);
-		// 	float z = cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
-		// 	g_view = glm::normalize(vec3(x, y, z));
-		// }
-		
-		float constraint = 30 * PI/180; // constrain phi between -30 and 30 degrees
-		float sensitivity = 30; // bigger = less sensitive
-		if (gPhi + deltaY/sensitivity < constraint && 
-			gPhi + deltaY/sensitivity > -constraint) {
-			gPhi += deltaY/sensitivity;
+		if (mode == 0) {
+			// constrain phi between -80 and 80 degrees
+			float constraint = 80 * glm::pi<float>()/180; 
+			float sensitivity = 16;
+			if (gPhi + deltaY/sensitivity < constraint && 
+				gPhi + deltaY/sensitivity > -constraint) {
+				gPhi += deltaY/sensitivity;
+			}
+			gTheta -= deltaX/sensitivity; 
+			float x = cos(gPhi)*cos(gTheta);
+			float y = sin(gPhi);
+			float z = cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+			g_view = glm::normalize(vec3(x, y, z));
+		} else if (mode == 1) {
+			float constraint = 30 * PI/180; // constrain phi between -30 and 30 degrees
+			float sensitivity = 30; // bigger = less sensitive
+			if (gPhi + deltaY/sensitivity < constraint && 
+				gPhi + deltaY/sensitivity > -constraint) {
+				gPhi += deltaY/sensitivity;
+			}
+			gTheta -= deltaX/sensitivity; 
+			float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
+			float y = camRadius*sin(gPhi);
+			float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+			spherePos = vec3(-x, -y, -z);
 		}
-		gTheta -= deltaX/sensitivity; 
-		float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
-		float y = camRadius*sin(gPhi);
-		float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
-		spherePos = vec3(-x, -y, -z);
 	}
 
 	void init(const std::string& resourceDirectory)
@@ -686,10 +748,14 @@ public:
 		// if (enabledFixedTour && fixLookAt) {
 		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); // During the tour, keep lookAt at fixedPoint
 		// } else {
-		// 	// Cam = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
+		// 	//Cam  = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
 		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); 
 		// }
-		Cam = glm::lookAt(fixedPoint + spherePos, fixedPoint, g_up); 
+		if (mode == 0) {
+			Cam = glm::lookAt(g_eye, g_eye + g_view, g_up);
+		} else if (mode == 1) {
+			Cam = glm::lookAt(fixedPoint + spherePos, fixedPoint, g_up); 
+		}
   		glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(Cam));
 	}
 
@@ -697,22 +763,16 @@ public:
 		fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
 		if (goLeft) { // strafe left
 			g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		} else if (goRight) { // strafe right
 			g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		} else if (goBack) { // dolly backward
 			g_eye -= speed * g_view; 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		} else if (goFront) { // dolly forward
 			g_eye += speed * g_view; 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		} else if (goUp) {
 			g_eye += speed * g_up; 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		} else if (goDown) {
 			g_eye -= speed * g_up; 
-			g_view = glm::normalize(fixedPoint - g_eye);
 		}
 	}
 
@@ -836,7 +896,7 @@ public:
 			Model->translate(horse_pos);
 			// Model->translate(vec3(horse_pos.x, getHeightW(horse_pos.x, horse_pos.z)+0.08, horse_pos.z));
 			Model->scale(vec3(0.02, 0.02, 0.02));
-			// Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
+			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
 			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			scaleToOrigin(Model, currIndex);
 			setModel(texProg, Model);
