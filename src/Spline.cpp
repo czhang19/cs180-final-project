@@ -41,6 +41,11 @@ void Spline::update(float deltaTime)
     }
 }
 
+void Spline::reset() {
+    done = false;
+    t = 0; 
+}
+
 bool Spline::isDone()
 {
     return done;

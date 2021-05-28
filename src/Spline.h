@@ -49,6 +49,7 @@ public:
 
     ~Spline();
     void update(float deltaTime);
+    void reset(); 
     bool isDone();
     glm::vec3 getPosition();
 };

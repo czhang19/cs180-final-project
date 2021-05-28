@@ -74,22 +74,39 @@ public:
 
 	// Animation data
 	float lightAngle = 110; 
+	float gallopHeight = 0; 
+	float gallopAngle = 0;
 
 	// Camera
 	float gPhi = 0;
 	float gTheta = 0;
-	float speed = 0.1;
-	vec3 g_view = vec3(0, 0, -1);
+	float speed = 0.001; // 0.1;
+	// vec3 g_view = vec3(0, 0, -1);
+	vec3 g_view;
 	vec3 g_strafe = vec3(1, 0, 0);
-	vec3 g_eye = vec3(-2.8,-0.8,3.5);
+	// vec3 g_eye = vec3(-2.8,-0.8,3.5);
+	vec3 g_eye;
 	vec3 g_up = vec3(0, 1, 0);
-
+	// vec3 horse_pos = vec3(-2.8,-0.8,3.5);
+	// vec3 horse_pos = vec3(-2.8,-0.8,3.8); // assume y is the ground height
+	vec3 horse_pos; // horse_pos is horse's position on the splinepath
+	vec2 horse_start = vec2(-2.8,3.8); // start pos x, z
+	
 	// Cinematic tour
-	Spline splinepath[2];
+	Spline splinepath[1];
 	bool goCamera = false;
-	bool enabledFixedTour = true;
+	bool enabledFixedTour = false;
 	bool fixLookAt = false;
-	vec3 fixedPoint = vec3(-2, -0.7, 2.8);
+	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
+	vec3 fixedPoint;
+
+	// Movement
+	bool goLeft = false;
+	bool goRight = false;
+	bool goBack = false;
+	bool goFront = false;
+	bool goUp = false;
+	bool goDown = false; 
 
 	// Random scenery
 	time_t rseed; 
@@ -100,18 +117,66 @@ public:
 		{
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+		// // toggle move speed
+		// if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+		// 	speed = 0.05;
+		// }
+		// if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+		// 	speed = 0.1;
+		// }
+		// if (key == GLFW_KEY_3 && action == GLFW_PRESS){
+		// 	speed = 0.5;
+		// }
 		// User first-person movement
-		if (key == GLFW_KEY_A && action == GLFW_PRESS) { // strafe left
-			g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
+		// if (key == GLFW_KEY_A && action == GLFW_PRESS) { // strafe left
+		// 	g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
+		// }
+		// if (key == GLFW_KEY_D && action == GLFW_PRESS) { // strafe right
+		// 	g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
+		// }
+		// if (key == GLFW_KEY_S && action == GLFW_PRESS) { // dolly backward
+		// 	g_eye -= speed * g_view; 
+		// }
+		// if (key == GLFW_KEY_W && action == GLFW_PRESS) { // dolly forward
+		// 	g_eye += speed * g_view; 
+		// }
+		// toggle move speed
+		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+			speed = 0.0005;
 		}
-		if (key == GLFW_KEY_D && action == GLFW_PRESS) { // strafe right
-			g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
+		if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+			speed = 0.001;
 		}
-		if (key == GLFW_KEY_S && action == GLFW_PRESS) { // dolly backward
-			g_eye -= speed * g_view; 
+		if (key == GLFW_KEY_3 && action == GLFW_PRESS){
+			speed = 0.002;
 		}
-		if (key == GLFW_KEY_W && action == GLFW_PRESS) { // dolly forward
-			g_eye += speed * g_view; 
+		if (key == GLFW_KEY_A) { // rotate left
+			if (action == GLFW_PRESS) {
+				goLeft = true;
+			} else if (action == GLFW_RELEASE) {
+				goLeft = false;
+			}
+		}
+		if (key == GLFW_KEY_D) { // rotate right
+			if (action == GLFW_PRESS) {
+				goRight = true;
+			} else if (action == GLFW_RELEASE) {
+				goRight = false;
+			}
+		}
+		if (key == GLFW_KEY_S) { // rotate down
+			if (action == GLFW_PRESS) {
+				goDown = true;
+			} else if (action == GLFW_RELEASE) {
+				goDown = false;
+			}
+		}
+		if (key == GLFW_KEY_W) { // rotate up
+			if (action == GLFW_PRESS) {
+				goUp = true;
+			} else if (action == GLFW_RELEASE) {
+				goUp = false;
+			}
 		}
 		// Update positional light direction, clamping light angle
 		if (key == GLFW_KEY_Q && action == GLFW_PRESS){
@@ -252,8 +317,8 @@ public:
 
   		// Initialize spline paths
 		float y = -0.85;
-		splinepath[0] = Spline(glm::vec3(-3,y,2.8), glm::vec3(-2,y,5), glm::vec3(-1,y,2.8), 10);
-		splinepath[1] = Spline(glm::vec3(-1,y,2.8), glm::vec3(-2,y,0.6), glm::vec3(-3,y,2.8), 10);
+		splinepath[0] = Spline(glm::vec3(-2,y,2), glm::vec3(-4,y,0), glm::vec3(-11.5,y,-10), glm::vec3(-6,y,-12), 15);
+		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
 
 		gTheta = -glm::pi<float>()/2;
 		rseed = time(NULL); 
@@ -282,9 +347,9 @@ public:
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/"};
-		vector<bool> hasTextures = {true, true, true, true};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/horse2/horse 1.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "/horse2/"};
+		vector<bool> hasTextures = {true, true, true, true, true};
 		int numObj = objFiles.size();
 		
 		vector<vector<tinyobj::shape_t>> TOshapes(numObj);
@@ -371,6 +436,11 @@ public:
 		cubeMapTexture = createSky(resourceDirectory + "/dawn/", faces);
 		
 		initGround(resourceDirectory);
+
+		horse_pos = vec3(horse_start.x, getHeightW(horse_start.x, horse_start.y) + 0.08, horse_start.y);
+		g_eye = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z+0.3);
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
+		g_view = glm::normalize(fixedPoint - g_eye);
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -602,9 +672,33 @@ public:
 		if (enabledFixedTour && fixLookAt) {
 			Cam = glm::lookAt(g_eye, fixedPoint, g_up); // During the tour, keep lookAt at fixedPoint
 		} else {
-			Cam = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
+			// Cam = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
+			Cam = glm::lookAt(g_eye, fixedPoint, g_up); 
 		}
   		glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(Cam));
+	}
+
+	void updatePosition(float frametime) {
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
+		if (goLeft) { // strafe left
+			g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		} else if (goRight) { // strafe right
+			g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		} else if (goBack) { // dolly backward
+			g_eye -= speed * g_view; 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		} else if (goFront) { // dolly forward
+			g_eye += speed * g_view; 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		} else if (goUp) {
+			g_eye += speed * g_up; 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		} else if (goDown) {
+			g_eye -= speed * g_up; 
+			g_view = glm::normalize(fixedPoint - g_eye);
+		}
 	}
 
 
@@ -613,21 +707,24 @@ public:
 		if (goCamera) {
 			if (!splinepath[0].isDone()){
 				splinepath[0].update(frametime);
+				// horse_pos = splinepath[0].getPosition();
 				g_eye = splinepath[0].getPosition();
-			} else if (!splinepath[1].isDone()) {
-				splinepath[1].update(frametime);
-				g_eye = splinepath[1].getPosition();
+			// } else if (!splinepath[1].isDone()) {
+			// 	splinepath[1].update(frametime);
+			// 	g_eye = splinepath[1].getPosition();
 			} else {
-				// Once the tour is over, update variables and view
-				if (enabledFixedTour) {
-					fixLookAt = false;
-					goCamera = false;
-					// Update camera variables to match current view
-					vec3 direction = glm::normalize(fixedPoint - g_eye);
-					gPhi = asin(direction.y);
-					gTheta = atan2(direction.z, direction.x);
-					g_view = glm::normalize(fixedPoint - g_eye);
-				}
+				splinepath[0].reset();
+				// splinepath[1].reset();
+				// // Once the tour is over, update variables and view
+				// if (enabledFixedTour) {
+				// 	fixLookAt = false;
+				// 	goCamera = false;
+				// 	// Update camera variables to match current view
+				// 	vec3 direction = glm::normalize(fixedPoint - g_eye);
+				// 	gPhi = asin(direction.y);
+				// 	gTheta = atan2(direction.z, direction.x);
+				// 	g_view = glm::normalize(fixedPoint - g_eye);
+				// }
 			}
 		}
    	}
@@ -649,6 +746,7 @@ public:
 
 		// Update the camera position
 		updateUsingCameraPath(frametime);
+		updatePosition(frametime);
 
 		// Apply perspective projection.
 		Projection->pushMatrix();
@@ -687,16 +785,44 @@ public:
 			scaleToOrigin(Model, currIndex);
 			setAndDrawModel(texProg, Model, currIndex);
 		Model->popMatrix();
-		// Draw horse
+		// Draw horses
 		currIndex = 2;
 		float horse_x;
+		float horse_y;
 		float horse_z;
+		// Model->pushMatrix();
+		// 	horse_x = g_eye.x;
+		// 	horse_z = g_eye.z;
+		// 	horse_y = getHeightW(horse_x, horse_z)+0.085+gallopHeight; 
+		// 	// horse_y = std::min(getHeightW(horse_x, horse_z)+0.08, g_eye.y - 0.1); // horse must stay on ground
+		// 	// Model->translate(horse_pos); 
+		// 	Model->translate(vec3(horse_x, horse_y, horse_z)); 
+		// 	Model->scale(vec3(0.02, 0.02, 0.02));
+		// 	Model->rotate(180 * glm::pi<float>()/180, vec3(0, 1, 0));
+		// 	Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0));
+		// 	scaleToOrigin(Model, currIndex);
+		// 	setModel(texProg, Model);
+		// 	for (int i = 0; i < materials[currIndex].size(); i++) {
+		// 		if (i == 1 || i == 4) {
+		// 			materials[currIndex][0]->bind(texProg->getUniform("Texture0"));
+		// 		} else if (i == 2 || i == 3) {
+		// 			materials[currIndex][1]->bind(texProg->getUniform("Texture0"));
+		// 		} else if (i == 0) {
+		// 			materials[currIndex][2]->bind(texProg->getUniform("Texture0"));
+		// 		}
+		// 		meshes[currIndex][i]->draw(texProg);
+		// 	}
+		// Model->popMatrix();
 		Model->pushMatrix();
-			horse_x = -2.3;
-			horse_z = 3.1;
-			Model->translate(vec3(horse_x, getHeightW(horse_x, horse_z)+0.08, horse_z));
+			// horse_x = -2.3;
+			// horse_z = 3.1;
+			// horse_y = getHeightW(horse_x, horse_z)+0.08;
+			// Model->translate(vec3(horse_x, horse_y, horse_z));
+			Model->translate(horse_pos);
+			// Model->translate(vec3(horse_pos.x, getHeightW(horse_pos.x, horse_pos.z)+0.08, horse_pos.z));
 			Model->scale(vec3(0.02, 0.02, 0.02));
-			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
+			// Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
+			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			scaleToOrigin(Model, currIndex);
 			setModel(texProg, Model);
 			for (int i = 0; i < materials[currIndex].size(); i++) {
@@ -710,6 +836,19 @@ public:
 				meshes[currIndex][i]->draw(texProg);
 			}
 		Model->popMatrix();
+		// Draw horse2
+		// currIndex = 4;
+		// Model->pushMatrix();
+		// 	// horse_x = -2.3;
+		// 	// horse_z = 3.1;
+		// 	// horse_y = getHeightW(horse_x, horse_z)+0.08;
+		// 	// Model->translate(vec3(-2.8,-0.8,3.5));
+		// 	Model->translate(fixedPoint);
+		// 	Model->scale(vec3(0.015, 0.015, 0.015));
+		// 	scaleToOrigin(Model, currIndex);
+		// 	setModel(texProg, Model);
+		// 	// setAndDrawModel(texProg, Model, currIndex);
+		// Model->popMatrix();
 		// Draw grass
 		currIndex = 3;
 		texture3->bind(texProg->getUniform("Texture0"));
@@ -739,6 +878,8 @@ public:
 		// Pop matrix stacks.
 		Projection->popMatrix();
 
+		gallopHeight = sin(glfwGetTime()*3)*0.005;
+		gallopAngle = sin(glfwGetTime()*3)*5; // angle: 0-5 deg
 	}
 };
 
