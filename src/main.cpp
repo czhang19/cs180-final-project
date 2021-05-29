@@ -845,7 +845,6 @@ public:
 			}
 
 			// Draw front legs
-			// Right legs are a couple "frames" ahead of the left legs
 			Model->pushMatrix();
 				bx = 0; // rotate around top of right leg
 				by = meshes[currIndex][UPLEG_RF]->max.y;
@@ -889,6 +888,49 @@ public:
 				meshes[currIndex][UPLEG_RF]->draw(texProg);
 			Model->popMatrix();
 			// Left legs
+			int frontLeftFrameCount = (frontFrameCount - 1) % frontFrames.size(); // Right leg is 1-2 frames ahead of the left leg
+			Model->pushMatrix();
+				bx = 0; // rotate around top of left leg
+				by = meshes[currIndex][UPLEG_LF]->max.y;
+				bz = (meshes[currIndex][UPLEG_LF]->min.z + meshes[currIndex][UPLEG_LF]->max.z)/2;
+				Model->translate(vec3(bx, by, bz));
+				Model->rotate(frontFrames[frontLeftFrameCount].upper_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+				Model->translate(vec3(-bx, -by, -bz));
+				Model->pushMatrix();
+					bx = 0; // rotate around knee
+					by = (meshes[currIndex][KNEE_LF]->min.y + meshes[currIndex][KNEE_LF]->max.y)/2;
+					bz = (meshes[currIndex][KNEE_LF]->min.z + meshes[currIndex][KNEE_LF]->max.z)/2;
+					Model->translate(vec3(bx, by, bz));
+					Model->rotate(frontFrames[frontLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
+					Model->translate(vec3(-bx, -by, -bz));
+					Model->pushMatrix();	
+						bx = 0; // rotate around ankle
+						by = (meshes[currIndex][ANKLE_LF]->min.y + meshes[currIndex][ANKLE_LF]->max.y)/2;
+						bz = (meshes[currIndex][ANKLE_LF]->min.z + meshes[currIndex][ANKLE_LF]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(frontFrames[frontLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
+						Model->translate(vec3(-bx, -by, -bz));
+						Model->pushMatrix();	
+							bx = 0; // rotate hoof around pastern
+							by = (meshes[currIndex][PASTERN_LF]->min.y + meshes[currIndex][PASTERN_LF]->max.y)/2;
+							bz = (meshes[currIndex][PASTERN_LF]->min.z + meshes[currIndex][PASTERN_LF]->max.z)/2;
+							Model->translate(vec3(bx, by, bz));
+							Model->rotate(frontFrames[frontLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
+							Model->translate(vec3(-bx, -by, -bz));
+							setModel(texProg, Model);
+							meshes[currIndex][HOOF_LF]->draw(texProg);
+						Model->popMatrix();
+						setModel(texProg, Model);
+						meshes[currIndex][ANKLE_LF]->draw(texProg);
+						meshes[currIndex][PASTERN_LF]->draw(texProg);
+					Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][KNEE_LF]->draw(texProg);
+					meshes[currIndex][LOWLEG_LF]->draw(texProg);
+				Model->popMatrix();
+				setModel(texProg, Model);
+				meshes[currIndex][UPLEG_LF]->draw(texProg);
+			Model->popMatrix();
 
 			
 		Model->popMatrix();
