@@ -4,6 +4,7 @@
  */
 
 #include <iostream>
+#include <cmath>       
 #include <glad/glad.h>
 
 #include "GLSL.h"
@@ -15,7 +16,7 @@
 #include "stb_image.h"
 #include "Bezier.h"
 #include "Spline.h"
-#include <time.h>       
+#include <time.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -86,15 +87,11 @@ public:
 	// Mode 0 camera
 	float gPhi = 0;
 	float gTheta = 0;
-	float speed = 0.001; // 0.1;
-	// vec3 g_view = vec3(0, 0, -1);
+	float speed = 0.001;
 	vec3 g_view;
 	vec3 g_strafe = vec3(1, 0, 0);
-	// vec3 g_eye = vec3(-2.8,-0.8,3.5);
 	vec3 g_eye;
 	vec3 g_up = vec3(0, 1, 0);
-	// vec3 horse_pos = vec3(-2.8,-0.8,3.5);
-	// vec3 horse_pos = vec3(-2.8,-0.8,3.8); // assume y is the ground height
 	vec3 horse_pos; // horse_pos is horse's position on the splinepath
 	vec2 horse_start = vec2(-2.8,3.8); // start pos x, z
 
@@ -393,7 +390,7 @@ public:
 
   		// Initialize spline paths
 		float y = -0.85;
-		splinepath[0] = Spline(glm::vec3(-2,y,2), glm::vec3(-4,y,0), glm::vec3(-11.5,y,-10), glm::vec3(-6,y,-12), 15);
+		splinepath[0] = Spline(glm::vec3(-2,y,2), glm::vec3(-4,y,0), glm::vec3(-11.5,y,-10), glm::vec3(-6,y,-12), 30);
 		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
 
 		gTheta = -glm::pi<float>()/2;
@@ -669,6 +666,25 @@ public:
 		int h = (canyonHeight - 1) * (z + g_groundSize/2) / g_groundSize;
 		return getHeight(w, h) - 1;
 	}
+
+	// Input: x and z in world space
+	// Output: interpolated y of terrain in world space using bilinear interpolation
+	double getHeightWBI(float x0, float z0) {
+		float w = (canyonWidth - 1) * (x0 + g_groundSize/2) / g_groundSize;
+		float h = (canyonHeight - 1) * (z0 + g_groundSize/2) / g_groundSize;
+		double LB = getHeight((int) floor(w), (int) floor(h)) - 1;
+		double RB = getHeight((int) ceil(w), (int) floor(h)) - 1; 
+		double LT = getHeight((int) floor(w), (int) ceil(h)) - 1; 
+		double RT = getHeight((int) ceil(w), (int) ceil(h)) - 1; 
+		double x = w - floor(w);
+		double z = h - floor(h);
+		if (goCamera) {
+			// cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << endl;
+			cout << w << " " << h << " " << (int) floor(w) << " " << (int) ceil(w) << " " << (int) floor(h) << " " << (int) ceil(h) << endl;
+		}
+		double res = LB*(1-x)*(1-z) + RB*x*(1-z) + LT*(1-x)*z + RT*x*z;
+		return res;
+	}
 	
 	unsigned int createSky(string dir, vector<string> faces) {
 		unsigned int textureID;
@@ -862,9 +878,9 @@ public:
 		Model->popMatrix();
 		// Draw horses
 		currIndex = 2;
-		float horse_x;
-		float horse_y;
-		float horse_z;
+		// float horse_x;
+		// float horse_y;
+		// float horse_z;
 		// Model->pushMatrix();
 		// 	horse_x = g_eye.x;
 		// 	horse_z = g_eye.z;
@@ -893,11 +909,15 @@ public:
 			// horse_z = 3.1;
 			// horse_y = getHeightW(horse_x, horse_z)+0.08;
 			// Model->translate(vec3(horse_x, horse_y, horse_z));
-			Model->translate(horse_pos);
-			// Model->translate(vec3(horse_pos.x, getHeightW(horse_pos.x, horse_pos.z)+0.08, horse_pos.z));
+			// Model->translate(horse_pos);
+			double test_y = getHeightWBI(horse_pos.x, horse_pos.z)+0.08;
+			if (goCamera) {
+				cout << test_y << endl;
+			}
+			Model->translate(vec3(horse_pos.x, test_y, horse_pos.z));
 			Model->scale(vec3(0.02, 0.02, 0.02));
 			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
-			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			scaleToOrigin(Model, currIndex);
 			setModel(texProg, Model);
 			for (int i = 0; i < materials[currIndex].size(); i++) {
