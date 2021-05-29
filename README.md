@@ -39,6 +39,7 @@ Horse 2: https://www.cgtrader.com/free-3d-models/animals/other/horse-b0fa928c-b6
 Horse 3: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html
 
 ## References
+Jillian Empey's S19 Horse obj and animation frames: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html \
 Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blending \
 Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
 Getting heights of terrain: https://youtu.be/6E2zjfzMs7c
