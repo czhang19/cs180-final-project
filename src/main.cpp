@@ -81,6 +81,8 @@ public:
 	int frontFrameCount = 0;
 	int backFrameCount = 0;
 	int baseFrameCount = 0;
+	int cycleLength = 1;
+	double frameTime = 0;
 
 	/* Camera motion/navigation
 		Mode 0 = normal WASD movement, scroll to look around
@@ -454,7 +456,12 @@ public:
 				}
 			}
 		}
-		cout << "jilly horse: " << meshes[4].size() << " shapes" << endl;
+		// cout << "jilly horse: " << meshes[4].size() << " shapes" << endl;
+		// for (int i = 0; i < meshes[4].size(); i++) {
+		// 	cout << i << ") x: "  << meshes[4][i]->min.x << ", " << meshes[4][i]->max.x 
+		// 				<< " y: " << meshes[4][i]->min.y << ", " << meshes[4][i]->max.y 
+		// 				<< " z: " << meshes[4][i]->min.z << ", " << meshes[4][i]->max.z << endl;
+		// }
 		
 		vector<std::string> faces {
 			"px.jpg",
@@ -799,20 +806,36 @@ public:
 	
 	// Animate hierarchically modeled horse
 	void drawJillyHorse(std::shared_ptr<Program> texProg, shared_ptr<MatrixStack> Model) {
-	
 		int currIndex = 4;
 		Model->pushMatrix();
 			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.2, horse_pos.z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(-180 * PI/180, vec3(0, 1, 0));
-			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			scaleToOrigin(Model, currIndex);
-			setModel(texProg, Model);
-			for (int i = 0; i < meshes[currIndex].size(); i++) {
-				meshes[currIndex][i]->draw(texProg);
-			}
+			Model->pushMatrix();
+				// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+				
+				// Draw base
+				for (int i = 0; i < BASE.size(); i++) {
+					int p = BASE[i];
+					if (p == 26) { // draw head
+						Model->translate(vec3(0, meshes[currIndex][p]->min.y, meshes[currIndex][p]->min.z));
+						Model->rotate(baseFrames[baseFrameCount].head_angle, vec3(1, 0, 0));
+						Model->translate(vec3(0, -meshes[currIndex][p]->min.y, -meshes[currIndex][p]->min.z));
+						setModel(texProg, Model);
+						meshes[currIndex][p]->draw(texProg);
+					} else {
+						meshes[currIndex][p]->draw(texProg);
+					}
+					
+					// baseFrames[baseFrameCount].barrel_angle;
+					// baseFrames[baseFrameCount].chest_angle;
+					// 
+					// baseFrames[baseFrameCount].rear_angle;
+					// baseFrames[baseFrameCount].tail_angle;
+				}
+			Model->popMatrix();
 		Model->popMatrix();
-		
 	}
 
 	void render(float frametime) {
@@ -932,16 +955,15 @@ public:
 		// gallopHeight = sin(glfwGetTime()*3)*0.05;
 		gallopAngle = sin(glfwGetTime()*3)*5; // angle: 0-5 deg
 		
-		frontFrameCount++;
-		backFrameCount++;
-		baseFrameCount++;
-
-		if (frontFrameCount >= frontFrames.size())
-			frontFrameCount = 0;
-		if (backFrameCount >= backFrames.size())
-			backFrameCount = 0;
-		if (baseFrameCount >= baseFrames.size())
-			baseFrameCount = 0;
+		double curr = glfwGetTime();
+		if (curr - frameTime > (double) (baseFrameCount + 1) * cycleLength / baseFrames.size()) {
+			// cout << curr - frameTime << " " << baseFrameCount << endl;
+			baseFrameCount++;
+			if (curr - frameTime > cycleLength) {
+				frameTime = curr;
+				baseFrameCount = 0;
+			}	
+		}
 		
 	}
 };
