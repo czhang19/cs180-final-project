@@ -58,8 +58,8 @@ public:
 	vector<vector<float>> heights; 
 	int canyonWidth;
 	int canyonHeight;  
-	float max_height = 3; 
-	float g_groundSize = 50;
+	float max_height = 30; 
+	float g_groundSize = 500;
 
 	GLuint GrndBuffObj, GrndNorBuffObj, GrndTexBuffObj, GIndxBuffObj;
 	int g_GiboLen;
@@ -87,13 +87,13 @@ public:
 	// Mode 0 camera
 	float gPhi = 0;
 	float gTheta = 0;
-	float speed = 0.001;
+	float speed = 0.01;
 	vec3 g_view;
 	vec3 g_strafe = vec3(1, 0, 0);
 	vec3 g_eye;
 	vec3 g_up = vec3(0, 1, 0);
 	vec3 horse_pos; // horse_pos is horse's position on the splinepath
-	vec2 horse_start = vec2(-2.8,3.8); // start pos x, z
+	vec2 horse_start = vec2(-28, 38); // start pos x, z
 
 	// Mode 0 movement
 	bool goLeft = false;
@@ -110,7 +110,7 @@ public:
 	// bool fixLookAt = false;
 	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
 	vec3 fixedPoint;
-	float camRadius = 0.3;
+	float camRadius = 3;
 	vec3 spherePos = vec3(0, 0, camRadius);
 
 	// Random scenery
@@ -123,16 +123,16 @@ public:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		
-		if (mode == 0) {
+		// if (mode == 0) {
 			// toggle move speed
 			if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-				speed = 0.001;
-			}
-			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
 				speed = 0.01;
 			}
+			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+				speed = 0.1;
+			}
 			if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-				speed = 0.05;
+				speed = 0.5;
 			}
 			if (action == GLFW_PRESS) {
 				if (key == GLFW_KEY_A) // strafe left
@@ -161,49 +161,7 @@ public:
 				if (key == GLFW_KEY_E) 
 					goDown = false;
 			}
-			// if (key == GLFW_KEY_A) { // strafe left
-			// 	if (action == GLFW_PRESS) {
-			// 		goLeft = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goLeft = false;
-			// 	}
-			// }
-			// if (key == GLFW_KEY_D) { // strafe right
-			// 	if (action == GLFW_PRESS) {
-			// 		goRight = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goRight = false;
-			// 	}
-			// }
-			// if (key == GLFW_KEY_S) { // dolly backward
-			// 	if (action == GLFW_PRESS) {
-			// 		goBack = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goBack = false;
-			// 	}
-			// }
-			// if (key == GLFW_KEY_W) { // dolly forward
-			// 	if (action == GLFW_PRESS) {
-			// 		goFront = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goFront = false;
-			// 	}
-			// }
-			// if (key == GLFW_KEY_Q && action == GLFW_PRESS){ // go up
-			// 	if (action == GLFW_PRESS) {
-			// 		goUp = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goUp = false;
-			// 	}
-			// }
-			// if (key == GLFW_KEY_E && action == GLFW_PRESS){ // go down
-			// 	if (action == GLFW_PRESS) {
-			// 		goDown = true;
-			// 	} else if (action == GLFW_RELEASE) {
-			// 		goDown = false;
-			// 	}
-			// }
-		}
+		// }
 		// User first-person movement
 		// if (key == GLFW_KEY_A && action == GLFW_PRESS) { // strafe left
 		// 	g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
@@ -268,9 +226,9 @@ public:
 				mode = 1;
 				gPhi = 0;
 				gTheta = 0;
-				g_eye = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z+0.3);
-				fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
-				float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
+				g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
+				fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
+				float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 3
 				float y = camRadius*sin(gPhi);
 				float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
 				spherePos = vec3(-x, -y, -z);
@@ -387,11 +345,6 @@ public:
 		cubeProg->addAttribute("vertTex"); //silence error
 
 		initTex(resourceDirectory);
-
-  		// Initialize spline paths
-		float y = -0.85;
-		splinepath[0] = Spline(glm::vec3(-2,y,2), glm::vec3(-4,y,0), glm::vec3(-11.5,y,-10), glm::vec3(-6,y,-12), 30);
-		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
 
 		gTheta = -glm::pi<float>()/2;
 		rseed = time(NULL); 
@@ -510,10 +463,17 @@ public:
 		
 		initGround(resourceDirectory);
 
-		horse_pos = vec3(horse_start.x, getHeightW(horse_start.x, horse_start.y) + 0.08, horse_start.y);
-		g_eye = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z+0.3);
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
+		horse_pos = vec3(horse_start.x, getHeightW(horse_start.x, horse_start.y) + 0.8, horse_start.y);
+		g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 		g_view = glm::normalize(fixedPoint - g_eye);
+
+		// Initialize spline paths
+		float y = -8.5;
+		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 30);
+		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
+
+
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -521,7 +481,6 @@ public:
 		int VERTEX_COUNT = 256; // CPU cannot handle much more vertices than 256 in the arrays/vector 
 		
 		int count = VERTEX_COUNT * VERTEX_COUNT;
-		float g_groundY = -0.25;
 
 		vector<float> vertices(count * 3);
 		vector<float> normals(count * 3);
@@ -595,7 +554,7 @@ public:
      	glBindVertexArray(GroundVertexArrayID);
      	texture1->bind(curS->getUniform("Texture0"));
 		//draw the ground plane 
-  		SetModel(vec3(0, -1, 0), 0, 0, 1, curS);
+  		SetModel(vec3(0, -10, 0), 0, 0, 1, curS);
   		glEnableVertexAttribArray(0);
   		glBindBuffer(GL_ARRAY_BUFFER, GrndBuffObj);
   		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -664,7 +623,7 @@ public:
 	float getHeightW(float x, float z) {
 		int w = (canyonWidth - 1) * (x + g_groundSize/2) / g_groundSize;
 		int h = (canyonHeight - 1) * (z + g_groundSize/2) / g_groundSize;
-		return getHeight(w, h) - 1;
+		return getHeight(w, h) - 10;
 	}
 
 	// Input: x and z in world space
@@ -672,10 +631,10 @@ public:
 	double getHeightWBI(float x0, float z0) {
 		float w = (canyonWidth - 1) * (x0 + g_groundSize/2) / g_groundSize;
 		float h = (canyonHeight - 1) * (z0 + g_groundSize/2) / g_groundSize;
-		double LB = getHeight((int) floor(w), (int) floor(h)) - 1;
-		double RB = getHeight((int) ceil(w), (int) floor(h)) - 1; 
-		double LT = getHeight((int) floor(w), (int) ceil(h)) - 1; 
-		double RT = getHeight((int) ceil(w), (int) ceil(h)) - 1; 
+		double LB = getHeight((int) floor(w), (int) floor(h)) - 10;
+		double RB = getHeight((int) ceil(w), (int) floor(h)) - 10; 
+		double LT = getHeight((int) floor(w), (int) ceil(h)) - 10; 
+		double RT = getHeight((int) ceil(w), (int) ceil(h)) - 10; 
 		double x = w - floor(w);
 		double z = h - floor(h);
 		if (goCamera) {
@@ -744,7 +703,7 @@ public:
 		return vec3(Xtrans, Ytrans, Ztrans);
 	}
 	
-	// Scale mesh to max width of 10
+	// Scale mesh to max width of 100
 	vec3 normalizedScale(int index) {
 		float scale = 10/std::max((gMaxes[index].x-gMins[index].x), 
 			std::max((gMaxes[index].y-gMins[index].y), (gMaxes[index].z-gMins[index].z)));
@@ -776,20 +735,33 @@ public:
 	}
 
 	void updatePosition(float frametime) {
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+0.12, horse_pos.z);
-		if (goLeft) { // strafe left
-			g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
-		} else if (goRight) { // strafe right
-			g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
-		} else if (goBack) { // dolly backward
-			g_eye -= speed * g_view; 
-		} else if (goFront) { // dolly forward
-			g_eye += speed * g_view; 
-		} else if (goUp) {
-			g_eye += speed * g_up; 
-		} else if (goDown) {
-			g_eye -= speed * g_up; 
+		if (mode == 0) {
+			if (goLeft) { // strafe left
+				g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
+			} else if (goRight) { // strafe right
+				g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
+			} else if (goBack) { // dolly backward
+				g_eye -= speed * g_view; 
+			} else if (goFront) { // dolly forward
+				g_eye += speed * g_view; 
+			} else if (goUp) {
+				g_eye += speed * g_up; 
+			} else if (goDown) {
+				g_eye -= speed * g_up; 
+			}
+		} else if (mode == 1) {
+			if (goLeft) { // strafe left
+				horse_pos -= speed * vec3(1, 0, 0);
+			} else if (goRight) { // strafe right
+				horse_pos += speed * vec3(1, 0, 0);
+			} else if (goBack) { // dolly backward
+				horse_pos += speed * vec3(0, 0, 1); 
+			} else if (goFront) { // dolly forward
+				horse_pos -= speed * vec3(0, 0, 1); 
+			}
+			horse_pos.y = getHeightWBI(horse_pos.x, horse_pos.z);
 		}
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 	}
 
 
@@ -841,7 +813,7 @@ public:
 
 		// Apply perspective projection.
 		Projection->pushMatrix();
-		Projection->perspective(45.0f, aspect, 0.01f, 100.0f);
+		Projection->perspective(45.0f, aspect, 0.01f, 500.0f);
 
 		int currIndex; // current obj mesh index
 
@@ -853,7 +825,7 @@ public:
 		SetView(cubeProg); // set up view matrix to include your view transforms
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture); // bind the cube map texture
 		Model->pushMatrix();
-			Model->scale(vec3(50, 50, 50));
+			Model->scale(vec3(500, 500, 500));
 			glUniformMatrix4fv(cubeProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			setAndDrawModel(cubeProg, Model, currIndex);
 		Model->popMatrix();
@@ -869,8 +841,8 @@ public:
 		// Draw stable
 		Model->pushMatrix();
 			currIndex = 0;
-			Model->translate(vec3(-2, getHeightW(-2, 2.8)+0.18, 2.8));
-			Model->scale(vec3(0.1, 0.1, 0.1));
+			Model->translate(vec3(-20, getHeightW(-20, 28)+1.8, 28));
+			// Model->scale(vec3(0.1, 0.1, 0.1));
 			Model->rotate(120 * glm::pi<float>()/180, vec3(0, 1, 0));
 			Model->rotate(-glm::pi<float>()/2, vec3(1, 0, 0));
 			scaleToOrigin(Model, currIndex);
@@ -910,12 +882,12 @@ public:
 			// horse_y = getHeightW(horse_x, horse_z)+0.08;
 			// Model->translate(vec3(horse_x, horse_y, horse_z));
 			// Model->translate(horse_pos);
-			double test_y = getHeightWBI(horse_pos.x, horse_pos.z)+0.08;
+			double test_y = getHeightWBI(horse_pos.x, horse_pos.z)+0.8;
 			if (goCamera) {
 				cout << test_y << endl;
 			}
 			Model->translate(vec3(horse_pos.x, test_y, horse_pos.z));
-			Model->scale(vec3(0.02, 0.02, 0.02));
+			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
 			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			scaleToOrigin(Model, currIndex);
@@ -948,7 +920,7 @@ public:
 		currIndex = 3;
 		texture3->bind(texProg->getUniform("Texture0"));
 		srand(rseed); // Set random seed, so each render generates same values
-		vector<vec2> clusters = {vec2(-1.52, 3), vec2(-2.03, 2.38), vec2(-1.58, 2.5), vec2(-1.5, 2.64)}; 
+		vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
 		vector<int> sizes = {3, 2, 2, 2};
 		for (int c = 0; c < clusters.size(); c++) {
 			for (int i = 0; i < sizes[c]; i++) {
@@ -956,10 +928,10 @@ public:
 					Model->pushMatrix();	
 						float r1 = ((float) (rand() % 100))/100 - 0.5; 
 						float r2 = ((float) (rand() % 100))/100 - 0.5; 
-						float x = clusters[c].x + (i - sizes[c]/2 + r1) * 0.08; 
-						float z = clusters[c].y + (j - sizes[c]/2 + r2) * 0.08;
-						Model->translate(vec3(x, getHeightW(x, z) + 0.06, z));
-						Model->scale(vec3(0.01, 0.01, 0.01));
+						float x = clusters[c].x + (i - sizes[c]/2 + r1) * 0.8; 
+						float z = clusters[c].y + (j - sizes[c]/2 + r2) * 0.8;
+						Model->translate(vec3(x, getHeightW(x, z) + 0.6, z));
+						Model->scale(vec3(0.1, 0.1, 0.1));
 						scaleToOrigin(Model, currIndex);
 						setAndDrawModel(texProg, Model, currIndex);
 					Model->popMatrix();
@@ -973,7 +945,7 @@ public:
 		// Pop matrix stacks.
 		Projection->popMatrix();
 
-		gallopHeight = sin(glfwGetTime()*3)*0.005;
+		gallopHeight = sin(glfwGetTime()*3)*0.05;
 		gallopAngle = sin(glfwGetTime()*3)*5; // angle: 0-5 deg
 	}
 };
