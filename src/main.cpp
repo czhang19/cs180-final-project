@@ -812,29 +812,33 @@ public:
 			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(-180 * PI/180, vec3(0, 1, 0));
 			scaleToOrigin(Model, currIndex);
-			Model->pushMatrix();
-				// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
-				
-				// Draw base
-				for (int i = 0; i < BASE.size(); i++) {
-					int p = BASE[i];
+			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+			
+			// Draw base
+			for (int i = 0; i < BASE.size(); i++) {
+				int p = BASE[i];
+					Model->pushMatrix();
 					if (p == 26) { // draw head
 						Model->translate(vec3(0, meshes[currIndex][p]->min.y, meshes[currIndex][p]->min.z));
 						Model->rotate(baseFrames[baseFrameCount].head_angle, vec3(1, 0, 0));
 						Model->translate(vec3(0, -meshes[currIndex][p]->min.y, -meshes[currIndex][p]->min.z));
-						setModel(texProg, Model);
-						meshes[currIndex][p]->draw(texProg);
-					} else {
-						meshes[currIndex][p]->draw(texProg);
+					} else if (p == 6) { // draw tail
+						Model->translate(vec3(0, meshes[currIndex][p]->max.y, meshes[currIndex][p]->max.z));
+						Model->rotate(baseFrames[baseFrameCount].tail_angle, vec3(1, 0, 0));
+						Model->translate(vec3(0, -meshes[currIndex][p]->max.y, -meshes[currIndex][p]->max.z));
+					} else { // draw barrel, chest, booty
+						float bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
+						float by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
+						float bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(baseFrames[baseFrameCount].barrel_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+						Model->translate(vec3(-bx, -by, -bz));
 					}
-					
-					// baseFrames[baseFrameCount].barrel_angle;
-					// baseFrames[baseFrameCount].chest_angle;
-					// 
-					// baseFrames[baseFrameCount].rear_angle;
-					// baseFrames[baseFrameCount].tail_angle;
-				}
-			Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][p]->draw(texProg);
+				Model->popMatrix();
+			}
+			
 		Model->popMatrix();
 	}
 
