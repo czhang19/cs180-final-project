@@ -40,11 +40,13 @@ Horse 3: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/in
 
 ## References
 Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blending \
-Terrain from heightmap: https://youtu.be/O9v6olrHPwI
+Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
+Getting heights of terrain: https://youtu.be/6E2zjfzMs7c
 
 ## Features to Add
 - Animate horse movement
     - Add horse path through terrain
+    - Orient horse normals
 - Animate shooting arrow
 - Add physics-based motion (calculate position + velocity)
 - Add particle effects

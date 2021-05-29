@@ -373,8 +373,8 @@ public:
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/horse2/horse 1.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "/horse2/"};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", ""};
 		vector<bool> hasTextures = {true, true, true, true, true};
 		int numObj = objFiles.size();
 		
@@ -463,7 +463,7 @@ public:
 		
 		initGround(resourceDirectory);
 
-		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.8, horse_start.y);
+		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+1.2, horse_start.y);
 		g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
 		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 		g_view = glm::normalize(fixedPoint - g_eye);
@@ -625,14 +625,6 @@ public:
 		float l3 = 1.0f - l1 - l2;
 		return l1 * p1.y + l2 * p2.y + l3 * p3.y; 
 	}
-
-	// Input: x and z in world space
-	// Output: y of terrain in world space
-	float getHeightW(float x, float z) {
-		int w = (canyonWidth - 1) * (x + g_groundSize/2) / g_groundSize;
-		int h = (canyonHeight - 1) * (z + g_groundSize/2) / g_groundSize;
-		return getHeight(w, h) - 10;
-	}
 	
 	float getHeightBary(float x0, float z0) {
 		float w = (255) * (x0 + g_groundSize/2) / g_groundSize;
@@ -650,27 +642,8 @@ public:
 		} else {
 			res = barycentric(vec3(0, LB, 0), vec3(1, RT, 1), vec3(1, RB, 0), vec2(x, z));
 		}
-		cout << w << " " << h << " " << x << " " << z << " " << LB << " " << LT << " " <<  RT << " " <<  RB << " " << res << endl;
 		return res - 10;
 	}
-	
-	// double getHeightWBI(float x0, float z0) {
-	// 	float w = (canyonWidth - 1) * (x0 + g_groundSize/2) / g_groundSize;
-	// 	float h = (canyonHeight - 1) * (z0 + g_groundSize/2) / g_groundSize;
-	// 	if (w < 16 || w >= canyonWidth -16 || h < 16 || h >= canyonHeight - 16) {
-	// 		return getHeightW(x0, z0);
-	// 	}
-	// 	double LB = getHeight((int) floor(w)-16, (int) floor(h)-16) - 10;
-	// 	double RB = getHeight((int) ceil(w)+16, (int) floor(h)-16) - 10; 
-	// 	double LT = getHeight((int) floor(w)-16, (int) ceil(h)+16) - 10; 
-	// 	double RT = getHeight((int) ceil(w)+16, (int) ceil(h)+16) - 10; 
-	// 	double x = (w - floor(w) + 16)/32;
-	// 	double z = (h - floor(h) + 16)/32;
-	// 	// cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << endl;
-	// 	// double res = LB*(1-x)*(1-z) + RB*x*(1-z) + LT*(1-x)*z + RT*x*z;
-	// 	cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << res << endl;
-	// 	return res;
-	// }
 
 	unsigned int createSky(string dir, vector<string> faces) {
 		unsigned int textureID;
@@ -788,7 +761,7 @@ public:
 				horse_pos -= speed * vec3(0, 0, 1); 
 			}
 			if (!goCamera) 
-				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.8;
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+1.2;
 		}
 	}
 
@@ -799,6 +772,7 @@ public:
 			if (!splinepath[0].isDone()){
 				splinepath[0].update(frametime);
 				horse_pos = splinepath[0].getPosition();
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+1.2;
 				// g_eye = splinepath[0].getPosition();
 			// } else if (!splinepath[1].isDone()) {
 			// 	splinepath[1].update(frametime);
@@ -869,7 +843,7 @@ public:
 		// Draw stable
 		Model->pushMatrix();
 			currIndex = 0;
-			Model->translate(vec3(-20, getHeightW(-20, 28)+1.8, 28));
+			Model->translate(vec3(-20, getHeightBary(-20, 28)+1.8, 28));
 			// Model->scale(vec3(0.1, 0.1, 0.1));
 			Model->rotate(120 * glm::pi<float>()/180, vec3(0, 1, 0));
 			Model->rotate(-glm::pi<float>()/2, vec3(1, 0, 0));
@@ -878,46 +852,17 @@ public:
 		Model->popMatrix();
 		// Draw horses
 		currIndex = 2;
-		// float horse_x;
-		// float horse_y;
-		// float horse_z;
-		// Model->pushMatrix();
-		// 	horse_x = g_eye.x;
-		// 	horse_z = g_eye.z;
-		// 	horse_y = getHeightW(horse_x, horse_z)+0.085+gallopHeight; 
-		// 	// horse_y = std::min(getHeightW(horse_x, horse_z)+0.08, g_eye.y - 0.1); // horse must stay on ground
-		// 	// Model->translate(horse_pos); 
-		// 	Model->translate(vec3(horse_x, horse_y, horse_z)); 
-		// 	Model->scale(vec3(0.02, 0.02, 0.02));
-		// 	Model->rotate(180 * glm::pi<float>()/180, vec3(0, 1, 0));
-		// 	Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0));
-		// 	scaleToOrigin(Model, currIndex);
-		// 	setModel(texProg, Model);
-		// 	for (int i = 0; i < materials[currIndex].size(); i++) {
-		// 		if (i == 1 || i == 4) {
-		// 			materials[currIndex][0]->bind(texProg->getUniform("Texture0"));
-		// 		} else if (i == 2 || i == 3) {
-		// 			materials[currIndex][1]->bind(texProg->getUniform("Texture0"));
-		// 		} else if (i == 0) {
-		// 			materials[currIndex][2]->bind(texProg->getUniform("Texture0"));
-		// 		}
-		// 		meshes[currIndex][i]->draw(texProg);
-		// 	}
-		// Model->popMatrix();
+		float horse_x;
+		float horse_y;
+		float horse_z;
 		Model->pushMatrix();
-			// horse_x = -2.3;
-			// horse_z = 3.1;
-			// horse_y = getHeightW(horse_x, horse_z)+0.08;
-			// Model->translate(vec3(horse_x, horse_y, horse_z));
-			// Model->translate(horse_pos);
-			double test_y = getHeightBary(horse_pos.x, horse_pos.z)+0.8;
-			// if (goCamera) {
-			// 	cout << test_y << endl;
-			// }
-			Model->translate(vec3(horse_pos.x, test_y, horse_pos.z));
+			horse_x = -23;
+			horse_z = 31;
+			horse_y = getHeightBary(horse_x, horse_z)+0.7;
+			Model->translate(vec3(horse_x, horse_y, horse_z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
-			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
-			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+			// Model->rotate(180 * glm::pi<float>()/180, vec3(0, 1, 0));
+			Model->rotate(-60*PI/180, vec3(0, 1, 0));
 			scaleToOrigin(Model, currIndex);
 			setModel(texProg, Model);
 			for (int i = 0; i < materials[currIndex].size(); i++) {
@@ -931,19 +876,16 @@ public:
 				meshes[currIndex][i]->draw(texProg);
 			}
 		Model->popMatrix();
-		// Draw horse2
-		// currIndex = 4;
-		// Model->pushMatrix();
-		// 	// horse_x = -2.3;
-		// 	// horse_z = 3.1;
-		// 	// horse_y = getHeightW(horse_x, horse_z)+0.08;
-		// 	// Model->translate(vec3(-2.8,-0.8,3.5));
-		// 	Model->translate(fixedPoint);
-		// 	Model->scale(vec3(0.015, 0.015, 0.015));
-		// 	scaleToOrigin(Model, currIndex);
-		// 	setModel(texProg, Model);
-		// 	// setAndDrawModel(texProg, Model, currIndex);
-		// Model->popMatrix();
+		// Draw Jillyhorse
+		currIndex = 4;
+		Model->pushMatrix();
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.2, horse_pos.z));
+			Model->scale(vec3(0.2, 0.2, 0.2));
+			Model->rotate(-180 * glm::pi<float>()/180, vec3(0, 1, 0));
+			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+			scaleToOrigin(Model, currIndex);
+			setAndDrawModel(texProg, Model, currIndex);
+		Model->popMatrix();
 		// Draw grass
 		currIndex = 3;
 		texture3->bind(texProg->getUniform("Texture0"));
@@ -958,7 +900,7 @@ public:
 						float r2 = ((float) (rand() % 100))/100 - 0.5; 
 						float x = clusters[c].x + (i - sizes[c]/2 + r1) * 0.8; 
 						float z = clusters[c].y + (j - sizes[c]/2 + r2) * 0.8;
-						Model->translate(vec3(x, getHeightW(x, z) + 0.6, z));
+						Model->translate(vec3(x, getHeightBary(x, z) + 0.6, z));
 						Model->scale(vec3(0.1, 0.1, 0.1));
 						scaleToOrigin(Model, currIndex);
 						setAndDrawModel(texProg, Model, currIndex);
