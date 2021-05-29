@@ -463,7 +463,7 @@ public:
 		
 		initGround(resourceDirectory);
 
-		horse_pos = vec3(horse_start.x, getHeightW(horse_start.x, horse_start.y) + 0.8, horse_start.y);
+		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.8, horse_start.y);
 		g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
 		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 		g_view = glm::normalize(fixedPoint - g_eye);
@@ -605,10 +605,10 @@ public:
 		}
 	}
 
-	// Input: x and z between 0 and canyonWidth/Height (4096)
+	// Input: x and z between 0 and canyonWidth/Height - 1 (4096)
 	// Output: y of terrain 
 	float getHeight(float x, float z) {
-		if (x < 0 || x >= canyonHeight || z < 0 || z >= canyonHeight) {
+		if (x < 0 || x >= canyonWidth || z < 0 || z >= canyonHeight) {
 			return 0;
 		}
 		int h = canyonHeight - 1 - z;
@@ -618,6 +618,14 @@ public:
 		return p;
 	}
 
+	float barycentric(vec3 p1, vec3 p2, vec3 p3, vec2 pos) {
+		float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
+		float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
+		float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;
+		float l3 = 1.0f - l1 - l2;
+		return l1 * p1.y + l2 * p2.y + l3 * p3.y; 
+	}
+
 	// Input: x and z in world space
 	// Output: y of terrain in world space
 	float getHeightW(float x, float z) {
@@ -625,26 +633,45 @@ public:
 		int h = (canyonHeight - 1) * (z + g_groundSize/2) / g_groundSize;
 		return getHeight(w, h) - 10;
 	}
+	
+	float getHeightBary(float x0, float z0) {
+		float w = (255) * (x0 + g_groundSize/2) / g_groundSize;
+		float h = (255) * (z0 + g_groundSize/2) / g_groundSize;
+		float x = w - floor(w); // should be between 0 and 1...
+		float z = h - floor(h);
+		float res;
+		float LB = getHeight(floor(w)*16, floor(h)*16);
+		float LT = getHeight(floor(w)*16, ceil(h)*16);
+		float RT = getHeight(ceil(w)*16, ceil(h)*16);
+		float RB = getHeight(ceil(w)*16, floor(h)*16);
 
-	// Input: x and z in world space
-	// Output: interpolated y of terrain in world space using bilinear interpolation
-	double getHeightWBI(float x0, float z0) {
-		float w = (canyonWidth - 1) * (x0 + g_groundSize/2) / g_groundSize;
-		float h = (canyonHeight - 1) * (z0 + g_groundSize/2) / g_groundSize;
-		double LB = getHeight((int) floor(w), (int) floor(h)) - 10;
-		double RB = getHeight((int) ceil(w), (int) floor(h)) - 10; 
-		double LT = getHeight((int) floor(w), (int) ceil(h)) - 10; 
-		double RT = getHeight((int) ceil(w), (int) ceil(h)) - 10; 
-		double x = w - floor(w);
-		double z = h - floor(h);
-		if (goCamera) {
-			// cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << endl;
-			cout << w << " " << h << " " << (int) floor(w) << " " << (int) ceil(w) << " " << (int) floor(h) << " " << (int) ceil(h) << endl;
+		if (x < z) {
+			res = barycentric(vec3(0, LB, 0), vec3(0, LT, 1), vec3(1, RT, 1), vec2(x, z));
+		} else {
+			res = barycentric(vec3(0, LB, 0), vec3(1, RT, 1), vec3(1, RB, 0), vec2(x, z));
 		}
-		double res = LB*(1-x)*(1-z) + RB*x*(1-z) + LT*(1-x)*z + RT*x*z;
-		return res;
+		cout << w << " " << h << " " << x << " " << z << " " << LB << " " << LT << " " <<  RT << " " <<  RB << " " << res << endl;
+		return res - 10;
 	}
 	
+	// double getHeightWBI(float x0, float z0) {
+	// 	float w = (canyonWidth - 1) * (x0 + g_groundSize/2) / g_groundSize;
+	// 	float h = (canyonHeight - 1) * (z0 + g_groundSize/2) / g_groundSize;
+	// 	if (w < 16 || w >= canyonWidth -16 || h < 16 || h >= canyonHeight - 16) {
+	// 		return getHeightW(x0, z0);
+	// 	}
+	// 	double LB = getHeight((int) floor(w)-16, (int) floor(h)-16) - 10;
+	// 	double RB = getHeight((int) ceil(w)+16, (int) floor(h)-16) - 10; 
+	// 	double LT = getHeight((int) floor(w)-16, (int) ceil(h)+16) - 10; 
+	// 	double RT = getHeight((int) ceil(w)+16, (int) ceil(h)+16) - 10; 
+	// 	double x = (w - floor(w) + 16)/32;
+	// 	double z = (h - floor(h) + 16)/32;
+	// 	// cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << endl;
+	// 	// double res = LB*(1-x)*(1-z) + RB*x*(1-z) + LT*(1-x)*z + RT*x*z;
+	// 	cout << w << " " << h << " " << LB << " " << RB << " " << LT << " " << RT << res << endl;
+	// 	return res;
+	// }
+
 	unsigned int createSky(string dir, vector<string> faces) {
 		unsigned int textureID;
 		glGenTextures(1, &textureID);
@@ -735,6 +762,7 @@ public:
 	}
 
 	void updatePosition(float frametime) {
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z); // update for if we switch modes
 		if (mode == 0) {
 			if (goLeft) { // strafe left
 				g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
@@ -759,9 +787,9 @@ public:
 			} else if (goFront) { // dolly forward
 				horse_pos -= speed * vec3(0, 0, 1); 
 			}
-			horse_pos.y = getHeightWBI(horse_pos.x, horse_pos.z);
+			if (!goCamera) 
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.8;
 		}
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 	}
 
 
@@ -882,10 +910,10 @@ public:
 			// horse_y = getHeightW(horse_x, horse_z)+0.08;
 			// Model->translate(vec3(horse_x, horse_y, horse_z));
 			// Model->translate(horse_pos);
-			double test_y = getHeightWBI(horse_pos.x, horse_pos.z)+0.8;
-			if (goCamera) {
-				cout << test_y << endl;
-			}
+			double test_y = getHeightBary(horse_pos.x, horse_pos.z)+0.8;
+			// if (goCamera) {
+			// 	cout << test_y << endl;
+			// }
 			Model->translate(vec3(horse_pos.x, test_y, horse_pos.z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(-60 * glm::pi<float>()/180, vec3(0, 1, 0));
