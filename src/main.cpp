@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>       
 #include <glad/glad.h>
+#include <time.h>
 
 #include "GLSL.h"
 #include "Program.h"
@@ -16,7 +17,7 @@
 #include "stb_image.h"
 #include "Bezier.h"
 #include "Spline.h"
-#include <time.h>
+#include "HorseBodyExt.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -75,8 +76,11 @@ public:
 
 	// Animation data
 	float lightAngle = 110; 
-	float gallopHeight = 0; 
+	// float gallopHeight = 0; 
 	float gallopAngle = 0;
+	int frontFrameCount = 0;
+	int backFrameCount = 0;
+	int baseFrameCount = 0;
 
 	/* Camera motion/navigation
 		Mode 0 = normal WASD movement, scroll to look around
@@ -129,10 +133,10 @@ public:
 				speed = 0.01;
 			}
 			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
-				speed = 0.1;
+				speed = 0.03;
 			}
 			if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-				speed = 0.5;
+				speed = 0.1;
 			}
 			if (action == GLFW_PRESS) {
 				if (key == GLFW_KEY_A) // strafe left
@@ -397,7 +401,7 @@ public:
 					(resourceDirectory + objFiles[i]).c_str(), (resourceDirectory + mtlFiles[i]).c_str()));
 			}
 		} 
-
+		
 		for (int j = 0; j < numObj; j++) {
 			if (!rc[j]) {
 				cerr << errStr[j] << endl;
@@ -450,6 +454,7 @@ public:
 				}
 			}
 		}
+		cout << "jilly horse: " << meshes[4].size() << " shapes" << endl;
 		
 		vector<std::string> faces {
 			"px.jpg",
@@ -469,11 +474,9 @@ public:
 		g_view = glm::normalize(fixedPoint - g_eye);
 
 		// Initialize spline paths
-		float y = -8.5;
+		float y = 0; // doesn't matter; use terrain height for horse_pos
 		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 30);
 		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
-
-
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -793,6 +796,24 @@ public:
 			}
 		}
    	}
+	
+	// Animate hierarchically modeled horse
+	void drawJillyHorse(std::shared_ptr<Program> texProg, shared_ptr<MatrixStack> Model) {
+	
+		int currIndex = 4;
+		Model->pushMatrix();
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.2, horse_pos.z));
+			Model->scale(vec3(0.2, 0.2, 0.2));
+			Model->rotate(-180 * PI/180, vec3(0, 1, 0));
+			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
+			scaleToOrigin(Model, currIndex);
+			setModel(texProg, Model);
+			for (int i = 0; i < meshes[currIndex].size(); i++) {
+				meshes[currIndex][i]->draw(texProg);
+			}
+		Model->popMatrix();
+		
+	}
 
 	void render(float frametime) {
 		// Get current frame buffer size.
@@ -850,7 +871,7 @@ public:
 			scaleToOrigin(Model, currIndex);
 			setAndDrawModel(texProg, Model, currIndex);
 		Model->popMatrix();
-		// Draw horses
+		// Draw horse
 		currIndex = 2;
 		float horse_x;
 		float horse_y;
@@ -876,16 +897,9 @@ public:
 				meshes[currIndex][i]->draw(texProg);
 			}
 		Model->popMatrix();
-		// Draw Jillyhorse
-		currIndex = 4;
-		Model->pushMatrix();
-			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.2, horse_pos.z));
-			Model->scale(vec3(0.2, 0.2, 0.2));
-			Model->rotate(-180 * glm::pi<float>()/180, vec3(0, 1, 0));
-			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
-			scaleToOrigin(Model, currIndex);
-			setAndDrawModel(texProg, Model, currIndex);
-		Model->popMatrix();
+
+		drawJillyHorse(texProg, Model); 
+
 		// Draw grass
 		currIndex = 3;
 		texture3->bind(texProg->getUniform("Texture0"));
@@ -915,8 +929,20 @@ public:
 		// Pop matrix stacks.
 		Projection->popMatrix();
 
-		gallopHeight = sin(glfwGetTime()*3)*0.05;
+		// gallopHeight = sin(glfwGetTime()*3)*0.05;
 		gallopAngle = sin(glfwGetTime()*3)*5; // angle: 0-5 deg
+		
+		frontFrameCount++;
+		backFrameCount++;
+		baseFrameCount++;
+
+		if (frontFrameCount >= frontFrames.size())
+			frontFrameCount = 0;
+		if (backFrameCount >= backFrames.size())
+			backFrameCount = 0;
+		if (baseFrameCount >= baseFrames.size())
+			baseFrameCount = 0;
+		
 	}
 };
 
