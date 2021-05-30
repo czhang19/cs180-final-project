@@ -1066,6 +1066,9 @@ public:
 					} else if (p == TAIL) {
 						Model->pushMatrix();
 							Model->translate(vec3(0, 0, -meshes[currIndex][p]->max.z/10)); // move tail closer to body
+							Model->translate(vec3(0, meshes[currIndex][p]->max.y, meshes[currIndex][p]->max.z));
+							Model->rotate(20*PI/180, vec3(1, 0, 0));
+							Model->translate(vec3(0, -meshes[currIndex][p]->max.y, -meshes[currIndex][p]->max.z));
 							setModel(texProg, Model);
 							meshes[currIndex][p]->draw(texProg);
 						Model->popMatrix();
