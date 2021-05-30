@@ -53,3 +53,5 @@ Getting heights of terrain: https://youtu.be/6E2zjfzMs7c
 - Add particle effects
 - Add game menu (start, retry)
 - Add score on screen
+
+Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html

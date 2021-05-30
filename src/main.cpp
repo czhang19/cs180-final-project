@@ -887,8 +887,8 @@ public:
 				setModel(texProg, Model);
 				meshes[currIndex][UPLEG_RF]->draw(texProg);
 			Model->popMatrix();
-			// Left legs
-			int frontLeftFrameCount = (frontFrameCount - 1) % frontFrames.size(); // Right leg is 1-2 frames ahead of the left leg
+			// Left front leg
+			int frontLeftFrameCount = (frontFrameCount - 1) % frontFrames.size(); // Right leg is 1 frame ahead of the left leg
 			Model->pushMatrix();
 				bx = 0; // rotate around top of left leg
 				by = meshes[currIndex][UPLEG_LF]->max.y;
@@ -930,6 +930,114 @@ public:
 				Model->popMatrix();
 				setModel(texProg, Model);
 				meshes[currIndex][UPLEG_LF]->draw(texProg);
+			Model->popMatrix();
+
+			// Draw back legs
+			Model->pushMatrix();
+				bx = 0; // rotate around top of right back leg
+				by = meshes[currIndex][STIFLE_RB]->max.y;
+				bz = (meshes[currIndex][STIFLE_RB]->min.z + meshes[currIndex][STIFLE_RB]->max.z)/2;
+				Model->translate(vec3(bx, by, bz));
+				Model->rotate(backFrames[backFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+				Model->translate(vec3(-bx, -by, -bz));
+				Model->pushMatrix();
+					bx = 0; // rotate around top of upper leg
+					by = meshes[currIndex][UPLEG_RB]->max.y;
+					bz = (meshes[currIndex][UPLEG_RB]->min.z + meshes[currIndex][UPLEG_RB]->max.z)/2;
+					Model->translate(vec3(bx, by, bz));
+					Model->rotate(backFrames[backFrameCount].upper_angle, vec3(1, 0, 0)); 
+					Model->translate(vec3(-bx, -by, -bz));
+					Model->pushMatrix();
+						bx = 0; // rotate around knee
+						by = (meshes[currIndex][KNEE_RB]->min.y + meshes[currIndex][KNEE_RB]->max.y)/2;
+						bz = (meshes[currIndex][KNEE_RB]->min.z + meshes[currIndex][KNEE_RB]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(backFrames[backFrameCount].knee_angle, vec3(1, 0, 0)); 
+						Model->translate(vec3(-bx, -by, -bz));
+						Model->pushMatrix();
+							bx = 0; // rotate around ankle
+							by = (meshes[currIndex][ANKLE_RB]->min.y + meshes[currIndex][ANKLE_RB]->max.y)/2;
+							bz = (meshes[currIndex][ANKLE_RB]->min.z + meshes[currIndex][ANKLE_RB]->max.z)/2;
+							Model->translate(vec3(bx, by, bz));
+							Model->rotate(backFrames[backFrameCount].ankle_angle, vec3(1, 0, 0)); 
+							Model->translate(vec3(-bx, -by, -bz));
+							Model->pushMatrix();
+								bx = 0; // rotate around pastern
+								by = (meshes[currIndex][PASTERN_RB]->min.y + meshes[currIndex][PASTERN_RB]->max.y)/2;
+								bz = (meshes[currIndex][PASTERN_RB]->min.z + meshes[currIndex][PASTERN_RB]->max.z)/2;
+								Model->translate(vec3(bx, by, bz));
+								Model->rotate(backFrames[backFrameCount].hoof_angle, vec3(1, 0, 0)); 
+								Model->translate(vec3(-bx, -by, -bz));
+								setModel(texProg, Model);
+								meshes[currIndex][HOOF_RB]->draw(texProg);
+							Model->popMatrix();
+							setModel(texProg, Model);
+							meshes[currIndex][PASTERN_RB]->draw(texProg);
+							meshes[currIndex][ANKLE_RB]->draw(texProg);
+						Model->popMatrix();
+						setModel(texProg, Model);
+						meshes[currIndex][LOWLEG_RB]->draw(texProg);
+						meshes[currIndex][KNEE_RB]->draw(texProg);
+					Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][UPLEG_RB]->draw(texProg);
+				Model->popMatrix();
+				setModel(texProg, Model);
+				meshes[currIndex][STIFLE_RB]->draw(texProg);
+			Model->popMatrix();
+			// Left back leg
+			int backLeftFrameCount = (backFrameCount - 1) % backFrames.size(); // Right leg is 1 frame ahead of the left leg
+			Model->pushMatrix();
+				bx = 0; // rotate around top of right back leg
+				by = meshes[currIndex][STIFLE_LB]->max.y;
+				bz = (meshes[currIndex][STIFLE_LB]->min.z + meshes[currIndex][STIFLE_LB]->max.z)/2;
+				Model->translate(vec3(bx, by, bz));
+				Model->rotate(backFrames[backLeftFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+				Model->translate(vec3(-bx, -by, -bz));
+				Model->pushMatrix();
+					bx = 0; // rotate around top of upper leg
+					by = meshes[currIndex][UPLEG_LB]->max.y;
+					bz = (meshes[currIndex][UPLEG_LB]->min.z + meshes[currIndex][UPLEG_LB]->max.z)/2;
+					Model->translate(vec3(bx, by, bz));
+					Model->rotate(backFrames[backLeftFrameCount].upper_angle, vec3(1, 0, 0)); 
+					Model->translate(vec3(-bx, -by, -bz));
+					Model->pushMatrix();
+						bx = 0; // rotate around knee
+						by = (meshes[currIndex][KNEE_LB]->min.y + meshes[currIndex][KNEE_LB]->max.y)/2;
+						bz = (meshes[currIndex][KNEE_LB]->min.z + meshes[currIndex][KNEE_LB]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(backFrames[backLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
+						Model->translate(vec3(-bx, -by, -bz));
+						Model->pushMatrix();
+							bx = 0; // rotate around ankle
+							by = (meshes[currIndex][ANKLE_LB]->min.y + meshes[currIndex][ANKLE_LB]->max.y)/2;
+							bz = (meshes[currIndex][ANKLE_LB]->min.z + meshes[currIndex][ANKLE_LB]->max.z)/2;
+							Model->translate(vec3(bx, by, bz));
+							Model->rotate(backFrames[backLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
+							Model->translate(vec3(-bx, -by, -bz));
+							Model->pushMatrix();
+								bx = 0; // rotate around pastern
+								by = (meshes[currIndex][PASTERN_LB]->min.y + meshes[currIndex][PASTERN_LB]->max.y)/2;
+								bz = (meshes[currIndex][PASTERN_LB]->min.z + meshes[currIndex][PASTERN_LB]->max.z)/2;
+								Model->translate(vec3(bx, by, bz));
+								Model->rotate(backFrames[backLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
+								Model->translate(vec3(-bx, -by, -bz));
+								setModel(texProg, Model);
+								meshes[currIndex][HOOF_LB]->draw(texProg);
+							Model->popMatrix();
+							setModel(texProg, Model);
+							meshes[currIndex][PASTERN_LB]->draw(texProg);
+							meshes[currIndex][ANKLE_LB]->draw(texProg);
+						Model->popMatrix();
+						setModel(texProg, Model);
+						meshes[currIndex][LOWLEG_LB]->draw(texProg);
+						meshes[currIndex][KNEE_LB]->draw(texProg);
+					Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][UPLEG_LB]->draw(texProg);
+				Model->popMatrix();
+				setModel(texProg, Model);
+				meshes[currIndex][STIFLE_LB]->draw(texProg);
 			Model->popMatrix();
 
 			
