@@ -88,6 +88,7 @@ public:
 	double lastFrameTime;
 	double delta; 
 	float horseRotation = -180 * PI/180;
+	bool horseIsMoving = false;
 
 	/* Camera motion/navigation
 		Mode 0 = normal WASD movement, scroll to look around
@@ -140,73 +141,43 @@ public:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		
-		// if (mode == 0) {
 			// toggle move speed
-			if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-				speed = 0.01;
-			}
-			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
-				speed = 0.03;
-			}
-			if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-				speed = 0.1;
-			}
-			if (action == GLFW_PRESS) {
-				if (key == GLFW_KEY_A) // strafe left
-					goLeft = true;
-				if (key == GLFW_KEY_D) // strafe right
-					goRight = true;
-				if (key == GLFW_KEY_S) // dolly backward
-					goBack = true;
-				if (key == GLFW_KEY_W) // dolly forward
-					goFront = true;
-				if (key == GLFW_KEY_Q) // go up
-					goUp = true;
-				if (key == GLFW_KEY_E) // go down
-					goDown = true;
-			} else if (action == GLFW_RELEASE) {
-				if (key == GLFW_KEY_A)
-					goLeft = false;
-				if (key == GLFW_KEY_D)
-					goRight = false;
-				if (key == GLFW_KEY_S) 
-					goBack = false;
-				if (key == GLFW_KEY_W) 
-					goFront = false;
-				if (key == GLFW_KEY_Q) 
-					goUp = false;
-				if (key == GLFW_KEY_E) 
-					goDown = false;
-			}
-		// }
-		// User first-person movement
-		// if (key == GLFW_KEY_A && action == GLFW_PRESS) { // strafe left
-		// 	g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
-		// }
-		// if (key == GLFW_KEY_D && action == GLFW_PRESS) { // strafe right
-		// 	g_eye -= speed * glm::normalize(glm::cross(g_up, g_view)); 
-		// }
-		// if (key == GLFW_KEY_S && action == GLFW_PRESS) { // dolly backward
-		// 	g_eye -= speed * g_view; 
-		// }
-		// if (key == GLFW_KEY_W && action == GLFW_PRESS) { // dolly forward
-		// 	g_eye += speed * g_view; 
-		// }
-		// Update positional light direction, clamping light angle
-		// if (key == GLFW_KEY_Q && action == GLFW_PRESS){
-		// 	if (lightAngle < 140) 
-		// 		lightAngle += 10; 
-		// }
-		// if (key == GLFW_KEY_E && action == GLFW_PRESS){
-		// 	if (lightAngle > 40) 
-		// 		lightAngle -= 10; 
-		// }
-		// Toggle fixed tour (either look at fixed point or allow look around during animation)
-		// if (key == GLFW_KEY_L && action == GLFW_PRESS){
-		// 	// Only allow toggling if not currently in tour
-		// 	if (!goCamera) 
-		// 		enabledFixedTour = !enabledFixedTour; 
-		// }
+		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+			speed = 0.01;
+		}
+		if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+			speed = 0.03;
+		}
+		if (key == GLFW_KEY_3 && action == GLFW_PRESS){
+			speed = 0.1;
+		}
+		if (action == GLFW_PRESS) {
+			if (key == GLFW_KEY_A) // strafe left
+				goLeft = true;
+			if (key == GLFW_KEY_D) // strafe right
+				goRight = true;
+			if (key == GLFW_KEY_S) // dolly backward
+				goBack = true;
+			if (key == GLFW_KEY_W) // dolly forward
+				goFront = true;
+			if (key == GLFW_KEY_Q) // go up
+				goUp = true;
+			if (key == GLFW_KEY_E) // go down
+				goDown = true;
+		} else if (action == GLFW_RELEASE) {
+			if (key == GLFW_KEY_A)
+				goLeft = false;
+			if (key == GLFW_KEY_D)
+				goRight = false;
+			if (key == GLFW_KEY_S) 
+				goBack = false;
+			if (key == GLFW_KEY_W) 
+				goFront = false;
+			if (key == GLFW_KEY_Q) 
+				goUp = false;
+			if (key == GLFW_KEY_E) 
+				goDown = false;
+		}
 		// Debugging tool to determine current eye location
 		if (key == GLFW_KEY_P && action == GLFW_PRESS){
 			cout << "Eye at: " << g_eye.x << ", " << g_eye.y << ", " << g_eye.z << endl;
@@ -222,6 +193,12 @@ public:
 		if (mode == 1) {
 			if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
 				goCamera = !goCamera;
+				if (goCamera) {
+					horseIsMoving = true;
+					cout << "horseIsMoving " << horseIsMoving << endl;
+				} else {
+					horseIsMoving = false;
+				}
 				// if (enabledFixedTour) { 
 				// 	if (goCamera) { 
 				// 		// Start tour
@@ -774,43 +751,32 @@ public:
 				g_eye -= speed * g_up; 
 			}
 		} else if (mode == 1) {
-			// if (goLeft) { // strafe left
-			// 	horse_pos -= speed * vec3(1, 0, 0);
-			// } else if (goRight) { // strafe right
-			// 	horse_pos += speed * vec3(1, 0, 0);
-			// } else if (goBack) { // dolly backward
-			// 	horse_pos += speed * vec3(0, 0, 1); 
-			// } else if (goFront) { // dolly forward
-			// 	horse_pos -= speed * vec3(0, 0, 1); 
-			// }
-			// if (!goCamera) 
-			// 	horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
-
-			if (goLeft) { 
-				currentTurnSpeed = TURN_SPEED;
-				cout << "turnspeed = " << currentTurnSpeed << endl;
-			} else if (goRight) { 
-				currentTurnSpeed = -TURN_SPEED;
-				cout << "turnspeed = " << currentTurnSpeed << endl;
-			} else {
-				currentTurnSpeed = 0;
-			} 
-
-			if (goBack) { 
-				currentSpeed = -RUN_SPEED;
-			} else if (goFront) { 
-				currentSpeed = RUN_SPEED;
-			} else {
-				currentSpeed = 0;
+			if (!goCamera) {
+				if (goLeft) { 
+					currentTurnSpeed = TURN_SPEED;
+				} else if (goRight) { 
+					currentTurnSpeed = -TURN_SPEED;
+				} else {
+					currentTurnSpeed = 0;
+				} 
+				if (goBack) { 
+					horseIsMoving = true;
+					currentSpeed = -RUN_SPEED;
+				} else if (goFront) { 
+					horseIsMoving = true;
+					currentSpeed = RUN_SPEED;
+				} else {
+					horseIsMoving = false;
+					currentSpeed = 0;
+				}
 			}
-
+			
 			horseRotation += (currentTurnSpeed * delta) * PI/180; 
 			float distance = currentSpeed * delta;
 			float dx = (float) (distance * sin(horseRotation));
 			float dz = (float) (distance * cos(horseRotation));
 			horse_pos.x += dx;
 			horse_pos.z += dz;
-			// cout << horse_pos.x << " " << horse_pos.z << " " << delta << " " << dx << " " << dz << endl;
 
 			if (!goCamera) 
 				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
@@ -854,7 +820,9 @@ public:
 	void drawJillyHorse(std::shared_ptr<Program> texProg, shared_ptr<MatrixStack> Model) {
 		int currIndex = 4;
 		Model->pushMatrix();
-			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+0.75+gallopHeight, horse_pos.z));
+			if (horseIsMoving)
+				Model->translate(vec3(0, gallopHeight, 0));
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+0.75, horse_pos.z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(horseRotation, vec3(0, 1, 0)); // facing direction
 			scaleToOrigin(Model, currIndex);
@@ -862,240 +830,266 @@ public:
 			float bx; // temporary vars for rotating parts
 			float by; 
 			float bz;
-			// rotate around front of barrel
-			bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
-			by = meshes[currIndex][BARREL]->max.y;
-			bz = meshes[currIndex][BARREL]->max.z;
-			// by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
-			// bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
-			Model->translate(vec3(bx, by, bz));
-			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-			Model->translate(vec3(-bx, -by, -bz));
-
-			// Draw base
-			for (int i = 0; i < BASE.size(); i++) {
-				int p = BASE[i];
-				Model->pushMatrix();
-					if (p == 26) { // draw head
-						Model->translate(vec3(0, -meshes[currIndex][p]->min.y/10, -meshes[currIndex][p]->min.z/10)); // move head closer to body
-						// Model->translate(vec3(0, meshes[currIndex][p]->min.y, meshes[currIndex][p]->min.z));
-						// Model->rotate(baseFrames[baseFrameCount].head_angle, vec3(1, 0, 0));
-						// Model->translate(vec3(0, -meshes[currIndex][p]->min.y, -meshes[currIndex][p]->min.z));
-					} else if (p == 6) { // draw tail
-						Model->translate(vec3(0, 0, -meshes[currIndex][p]->max.z/10)); // move tail closer to body
-						Model->translate(vec3(0, meshes[currIndex][p]->max.y, meshes[currIndex][p]->max.z));
-						// Model->rotate(baseFrames[baseFrameCount].tail_angle, vec3(÷1, 0, 0));
-						Model->rotate(40*PI/180, vec3(1, 0, 0));
-						Model->translate(vec3(0, -meshes[currIndex][p]->max.y, -meshes[currIndex][p]->max.z));
-					} else { // draw barrel, chest, booty
-						// bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
-						// by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
-						// bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
-						// Model->translate(vec3(bx, by, bz));
-						// Model->rotate(baseFrames[baseFrameCount].barrel_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-						// Model->translate(vec3(-bx, -by, -bz));
-					}
-					setModel(texProg, Model);
-					meshes[currIndex][p]->draw(texProg);
-				Model->popMatrix();
+			if (horseIsMoving) {
+				// rotate around front of barrel
+				bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; 
+				by = meshes[currIndex][BARREL]->max.y;
+				bz = meshes[currIndex][BARREL]->max.z;
+				Model->translate(vec3(bx, by, bz));
+				Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); 
+				Model->translate(vec3(-bx, -by, -bz));
 			}
-
-			// Draw front legs
-			Model->pushMatrix();
-				bx = 0; // rotate around top of right leg
-				by = meshes[currIndex][UPLEG_RF]->max.y;
-				bz = (meshes[currIndex][UPLEG_RF]->min.z + meshes[currIndex][UPLEG_RF]->max.z)/2;
-				Model->translate(vec3(bx, by, bz));
-				Model->rotate(frontFrames[frontFrameCount].upper_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-				Model->translate(vec3(-bx, -by, -bz));
-				Model->pushMatrix();
-					bx = 0; // rotate around knee
-					by = (meshes[currIndex][KNEE_RF]->min.y + meshes[currIndex][KNEE_RF]->max.y)/2;
-					bz = (meshes[currIndex][KNEE_RF]->min.z + meshes[currIndex][KNEE_RF]->max.z)/2;
-					Model->translate(vec3(bx, by, bz));
-					Model->rotate(frontFrames[frontFrameCount].knee_angle, vec3(1, 0, 0)); 
-					Model->translate(vec3(-bx, -by, -bz));
-					Model->pushMatrix();	
-						bx = 0; // rotate around ankle
-						by = (meshes[currIndex][ANKLE_RF]->min.y + meshes[currIndex][ANKLE_RF]->max.y)/2;
-						bz = (meshes[currIndex][ANKLE_RF]->min.z + meshes[currIndex][ANKLE_RF]->max.z)/2;
-						Model->translate(vec3(bx, by, bz));
-						Model->rotate(frontFrames[frontFrameCount].ankle_angle, vec3(1, 0, 0)); 
-						Model->translate(vec3(-bx, -by, -bz));
-						Model->pushMatrix();	
-							bx = 0; // rotate hoof around pastern
-							by = (meshes[currIndex][PASTERN_RF]->min.y + meshes[currIndex][PASTERN_RF]->max.y)/2;
-							bz = (meshes[currIndex][PASTERN_RF]->min.z + meshes[currIndex][PASTERN_RF]->max.z)/2;
-							Model->translate(vec3(bx, by, bz));
-							Model->rotate(frontFrames[frontFrameCount].hoof_angle, vec3(1, 0, 0)); 
-							Model->translate(vec3(-bx, -by, -bz));
-							setModel(texProg, Model);
-							meshes[currIndex][HOOF_RF]->draw(texProg);
-						Model->popMatrix();
+			
+			// Draw base
+			if (horseIsMoving) {
+				for (int i = 0; i < BASE.size(); i++) {
+					int p = BASE[i];
+					Model->pushMatrix();
+						if (p == 26) { // draw head
+							Model->translate(vec3(0, -meshes[currIndex][p]->min.y/10, -meshes[currIndex][p]->min.z/10)); // move head closer to body
+						} else if (p == 6) { // draw tail
+							Model->translate(vec3(0, 0, -meshes[currIndex][p]->max.z/10)); // move tail closer to body
+							Model->translate(vec3(0, meshes[currIndex][p]->max.y, meshes[currIndex][p]->max.z));
+							Model->rotate(40*PI/180, vec3(1, 0, 0));
+							Model->translate(vec3(0, -meshes[currIndex][p]->max.y, -meshes[currIndex][p]->max.z));
+						} 
 						setModel(texProg, Model);
-						meshes[currIndex][ANKLE_RF]->draw(texProg);
-						meshes[currIndex][PASTERN_RF]->draw(texProg);
+						meshes[currIndex][p]->draw(texProg);
 					Model->popMatrix();
-					setModel(texProg, Model);
-					meshes[currIndex][KNEE_RF]->draw(texProg);
-					meshes[currIndex][LOWLEG_RF]->draw(texProg);
-				Model->popMatrix();
-				setModel(texProg, Model);
-				meshes[currIndex][UPLEG_RF]->draw(texProg);
-			Model->popMatrix();
-			// Left front leg
-			int frontLeftFrameCount = (frontFrameCount - 1) % frontFrames.size(); // Right leg is 1 frame ahead of the left leg
-			Model->pushMatrix();
-				bx = 0; // rotate around top of left leg
-				by = meshes[currIndex][UPLEG_LF]->max.y;
-				bz = (meshes[currIndex][UPLEG_LF]->min.z + meshes[currIndex][UPLEG_LF]->max.z)/2;
-				Model->translate(vec3(bx, by, bz));
-				Model->rotate(frontFrames[frontLeftFrameCount].upper_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-				Model->translate(vec3(-bx, -by, -bz));
-				Model->pushMatrix();
-					bx = 0; // rotate around knee
-					by = (meshes[currIndex][KNEE_LF]->min.y + meshes[currIndex][KNEE_LF]->max.y)/2;
-					bz = (meshes[currIndex][KNEE_LF]->min.z + meshes[currIndex][KNEE_LF]->max.z)/2;
-					Model->translate(vec3(bx, by, bz));
-					Model->rotate(frontFrames[frontLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
-					Model->translate(vec3(-bx, -by, -bz));
-					Model->pushMatrix();	
-						bx = 0; // rotate around ankle
-						by = (meshes[currIndex][ANKLE_LF]->min.y + meshes[currIndex][ANKLE_LF]->max.y)/2;
-						bz = (meshes[currIndex][ANKLE_LF]->min.z + meshes[currIndex][ANKLE_LF]->max.z)/2;
-						Model->translate(vec3(bx, by, bz));
-						Model->rotate(frontFrames[frontLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
-						Model->translate(vec3(-bx, -by, -bz));
-						Model->pushMatrix();	
-							bx = 0; // rotate hoof around pastern
-							by = (meshes[currIndex][PASTERN_LF]->min.y + meshes[currIndex][PASTERN_LF]->max.y)/2;
-							bz = (meshes[currIndex][PASTERN_LF]->min.z + meshes[currIndex][PASTERN_LF]->max.z)/2;
-							Model->translate(vec3(bx, by, bz));
-							Model->rotate(frontFrames[frontLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
-							Model->translate(vec3(-bx, -by, -bz));
-							setModel(texProg, Model);
-							meshes[currIndex][HOOF_LF]->draw(texProg);
-						Model->popMatrix();
-						setModel(texProg, Model);
-						meshes[currIndex][ANKLE_LF]->draw(texProg);
-						meshes[currIndex][PASTERN_LF]->draw(texProg);
-					Model->popMatrix();
-					setModel(texProg, Model);
-					meshes[currIndex][KNEE_LF]->draw(texProg);
-					meshes[currIndex][LOWLEG_LF]->draw(texProg);
-				Model->popMatrix();
-				setModel(texProg, Model);
-				meshes[currIndex][UPLEG_LF]->draw(texProg);
-			Model->popMatrix();
+				}
 
-			// Draw back legs
-			Model->pushMatrix();
-				bx = 0; // rotate around top of right back leg
-				by = meshes[currIndex][STIFLE_RB]->max.y;
-				bz = (meshes[currIndex][STIFLE_RB]->min.z + meshes[currIndex][STIFLE_RB]->max.z)/2;
-				Model->translate(vec3(bx, by, bz));
-				Model->rotate(backFrames[backFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-				Model->translate(vec3(-bx, -by, -bz));
+				// Draw front legs
 				Model->pushMatrix();
-					bx = 0; // rotate around top of upper leg
-					by = meshes[currIndex][UPLEG_RB]->max.y;
-					bz = (meshes[currIndex][UPLEG_RB]->min.z + meshes[currIndex][UPLEG_RB]->max.z)/2;
+					bx = 0; // rotate around top of right leg
+					by = meshes[currIndex][UPLEG_RF]->max.y;
+					bz = (meshes[currIndex][UPLEG_RF]->min.z + meshes[currIndex][UPLEG_RF]->max.z)/2;
 					Model->translate(vec3(bx, by, bz));
-					Model->rotate(backFrames[backFrameCount].upper_angle, vec3(1, 0, 0)); 
+					Model->rotate(frontFrames[frontFrameCount].upper_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
 					Model->translate(vec3(-bx, -by, -bz));
 					Model->pushMatrix();
 						bx = 0; // rotate around knee
-						by = (meshes[currIndex][KNEE_RB]->min.y + meshes[currIndex][KNEE_RB]->max.y)/2;
-						bz = (meshes[currIndex][KNEE_RB]->min.z + meshes[currIndex][KNEE_RB]->max.z)/2;
+						by = (meshes[currIndex][KNEE_RF]->min.y + meshes[currIndex][KNEE_RF]->max.y)/2;
+						bz = (meshes[currIndex][KNEE_RF]->min.z + meshes[currIndex][KNEE_RF]->max.z)/2;
 						Model->translate(vec3(bx, by, bz));
-						Model->rotate(backFrames[backFrameCount].knee_angle, vec3(1, 0, 0)); 
+						Model->rotate(frontFrames[frontFrameCount].knee_angle, vec3(1, 0, 0)); 
 						Model->translate(vec3(-bx, -by, -bz));
-						Model->pushMatrix();
+						Model->pushMatrix();	
 							bx = 0; // rotate around ankle
-							by = (meshes[currIndex][ANKLE_RB]->min.y + meshes[currIndex][ANKLE_RB]->max.y)/2;
-							bz = (meshes[currIndex][ANKLE_RB]->min.z + meshes[currIndex][ANKLE_RB]->max.z)/2;
+							by = (meshes[currIndex][ANKLE_RF]->min.y + meshes[currIndex][ANKLE_RF]->max.y)/2;
+							bz = (meshes[currIndex][ANKLE_RF]->min.z + meshes[currIndex][ANKLE_RF]->max.z)/2;
 							Model->translate(vec3(bx, by, bz));
-							Model->rotate(backFrames[backFrameCount].ankle_angle, vec3(1, 0, 0)); 
+							Model->rotate(frontFrames[frontFrameCount].ankle_angle, vec3(1, 0, 0)); 
 							Model->translate(vec3(-bx, -by, -bz));
-							Model->pushMatrix();
-								bx = 0; // rotate around pastern
-								by = (meshes[currIndex][PASTERN_RB]->min.y + meshes[currIndex][PASTERN_RB]->max.y)/2;
-								bz = (meshes[currIndex][PASTERN_RB]->min.z + meshes[currIndex][PASTERN_RB]->max.z)/2;
+							Model->pushMatrix();	
+								bx = 0; // rotate hoof around pastern
+								by = (meshes[currIndex][PASTERN_RF]->min.y + meshes[currIndex][PASTERN_RF]->max.y)/2;
+								bz = (meshes[currIndex][PASTERN_RF]->min.z + meshes[currIndex][PASTERN_RF]->max.z)/2;
 								Model->translate(vec3(bx, by, bz));
-								Model->rotate(backFrames[backFrameCount].hoof_angle, vec3(1, 0, 0)); 
+								Model->rotate(frontFrames[frontFrameCount].hoof_angle, vec3(1, 0, 0)); 
 								Model->translate(vec3(-bx, -by, -bz));
 								setModel(texProg, Model);
-								meshes[currIndex][HOOF_RB]->draw(texProg);
+								meshes[currIndex][HOOF_RF]->draw(texProg);
 							Model->popMatrix();
 							setModel(texProg, Model);
-							meshes[currIndex][PASTERN_RB]->draw(texProg);
-							meshes[currIndex][ANKLE_RB]->draw(texProg);
+							meshes[currIndex][ANKLE_RF]->draw(texProg);
+							meshes[currIndex][PASTERN_RF]->draw(texProg);
 						Model->popMatrix();
 						setModel(texProg, Model);
-						meshes[currIndex][LOWLEG_RB]->draw(texProg);
-						meshes[currIndex][KNEE_RB]->draw(texProg);
+						meshes[currIndex][KNEE_RF]->draw(texProg);
+						meshes[currIndex][LOWLEG_RF]->draw(texProg);
 					Model->popMatrix();
 					setModel(texProg, Model);
-					meshes[currIndex][UPLEG_RB]->draw(texProg);
+					meshes[currIndex][UPLEG_RF]->draw(texProg);
 				Model->popMatrix();
-				setModel(texProg, Model);
-				meshes[currIndex][STIFLE_RB]->draw(texProg);
-			Model->popMatrix();
-			// Left back leg
-			int backLeftFrameCount = (backFrameCount - 1) % backFrames.size(); // Right leg is 1 frame ahead of the left leg
-			Model->pushMatrix();
-				bx = 0; // rotate around top of right back leg
-				by = meshes[currIndex][STIFLE_LB]->max.y;
-				bz = (meshes[currIndex][STIFLE_LB]->min.z + meshes[currIndex][STIFLE_LB]->max.z)/2;
-				Model->translate(vec3(bx, by, bz));
-				Model->rotate(backFrames[backLeftFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-				Model->translate(vec3(-bx, -by, -bz));
+				// Left front leg
+				int frontLeftFrameCount = (frontFrameCount - 1) % frontFrames.size(); // Right leg is 1 frame ahead of the left leg
 				Model->pushMatrix();
-					bx = 0; // rotate around top of upper leg
-					by = meshes[currIndex][UPLEG_LB]->max.y;
-					bz = (meshes[currIndex][UPLEG_LB]->min.z + meshes[currIndex][UPLEG_LB]->max.z)/2;
+					bx = 0; // rotate around top of left leg
+					by = meshes[currIndex][UPLEG_LF]->max.y;
+					bz = (meshes[currIndex][UPLEG_LF]->min.z + meshes[currIndex][UPLEG_LF]->max.z)/2;
 					Model->translate(vec3(bx, by, bz));
-					Model->rotate(backFrames[backLeftFrameCount].upper_angle, vec3(1, 0, 0)); 
+					Model->rotate(frontFrames[frontLeftFrameCount].upper_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
 					Model->translate(vec3(-bx, -by, -bz));
 					Model->pushMatrix();
 						bx = 0; // rotate around knee
-						by = (meshes[currIndex][KNEE_LB]->min.y + meshes[currIndex][KNEE_LB]->max.y)/2;
-						bz = (meshes[currIndex][KNEE_LB]->min.z + meshes[currIndex][KNEE_LB]->max.z)/2;
+						by = (meshes[currIndex][KNEE_LF]->min.y + meshes[currIndex][KNEE_LF]->max.y)/2;
+						bz = (meshes[currIndex][KNEE_LF]->min.z + meshes[currIndex][KNEE_LF]->max.z)/2;
 						Model->translate(vec3(bx, by, bz));
-						Model->rotate(backFrames[backLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
+						Model->rotate(frontFrames[frontLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
 						Model->translate(vec3(-bx, -by, -bz));
-						Model->pushMatrix();
+						Model->pushMatrix();	
 							bx = 0; // rotate around ankle
-							by = (meshes[currIndex][ANKLE_LB]->min.y + meshes[currIndex][ANKLE_LB]->max.y)/2;
-							bz = (meshes[currIndex][ANKLE_LB]->min.z + meshes[currIndex][ANKLE_LB]->max.z)/2;
+							by = (meshes[currIndex][ANKLE_LF]->min.y + meshes[currIndex][ANKLE_LF]->max.y)/2;
+							bz = (meshes[currIndex][ANKLE_LF]->min.z + meshes[currIndex][ANKLE_LF]->max.z)/2;
 							Model->translate(vec3(bx, by, bz));
-							Model->rotate(backFrames[backLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
+							Model->rotate(frontFrames[frontLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
 							Model->translate(vec3(-bx, -by, -bz));
-							Model->pushMatrix();
-								bx = 0; // rotate around pastern
-								by = (meshes[currIndex][PASTERN_LB]->min.y + meshes[currIndex][PASTERN_LB]->max.y)/2;
-								bz = (meshes[currIndex][PASTERN_LB]->min.z + meshes[currIndex][PASTERN_LB]->max.z)/2;
+							Model->pushMatrix();	
+								bx = 0; // rotate hoof around pastern
+								by = (meshes[currIndex][PASTERN_LF]->min.y + meshes[currIndex][PASTERN_LF]->max.y)/2;
+								bz = (meshes[currIndex][PASTERN_LF]->min.z + meshes[currIndex][PASTERN_LF]->max.z)/2;
 								Model->translate(vec3(bx, by, bz));
-								Model->rotate(backFrames[backLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
+								Model->rotate(frontFrames[frontLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
 								Model->translate(vec3(-bx, -by, -bz));
 								setModel(texProg, Model);
-								meshes[currIndex][HOOF_LB]->draw(texProg);
+								meshes[currIndex][HOOF_LF]->draw(texProg);
 							Model->popMatrix();
 							setModel(texProg, Model);
-							meshes[currIndex][PASTERN_LB]->draw(texProg);
-							meshes[currIndex][ANKLE_LB]->draw(texProg);
+							meshes[currIndex][ANKLE_LF]->draw(texProg);
+							meshes[currIndex][PASTERN_LF]->draw(texProg);
 						Model->popMatrix();
 						setModel(texProg, Model);
-						meshes[currIndex][LOWLEG_LB]->draw(texProg);
-						meshes[currIndex][KNEE_LB]->draw(texProg);
+						meshes[currIndex][KNEE_LF]->draw(texProg);
+						meshes[currIndex][LOWLEG_LF]->draw(texProg);
 					Model->popMatrix();
 					setModel(texProg, Model);
-					meshes[currIndex][UPLEG_LB]->draw(texProg);
+					meshes[currIndex][UPLEG_LF]->draw(texProg);
 				Model->popMatrix();
-				setModel(texProg, Model);
-				meshes[currIndex][STIFLE_LB]->draw(texProg);
-			Model->popMatrix();
 
+				// Draw back legs
+				Model->pushMatrix();
+					bx = 0; // rotate around top of right back leg
+					by = meshes[currIndex][STIFLE_RB]->max.y;
+					bz = (meshes[currIndex][STIFLE_RB]->min.z + meshes[currIndex][STIFLE_RB]->max.z)/2;
+					Model->translate(vec3(bx, by, bz));
+					Model->rotate(backFrames[backFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+					Model->translate(vec3(-bx, -by, -bz));
+					Model->pushMatrix();
+						bx = 0; // rotate around top of upper leg
+						by = meshes[currIndex][UPLEG_RB]->max.y;
+						bz = (meshes[currIndex][UPLEG_RB]->min.z + meshes[currIndex][UPLEG_RB]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(backFrames[backFrameCount].upper_angle, vec3(1, 0, 0)); 
+						Model->translate(vec3(-bx, -by, -bz));
+						Model->pushMatrix();
+							bx = 0; // rotate around knee
+							by = (meshes[currIndex][KNEE_RB]->min.y + meshes[currIndex][KNEE_RB]->max.y)/2;
+							bz = (meshes[currIndex][KNEE_RB]->min.z + meshes[currIndex][KNEE_RB]->max.z)/2;
+							Model->translate(vec3(bx, by, bz));
+							Model->rotate(backFrames[backFrameCount].knee_angle, vec3(1, 0, 0)); 
+							Model->translate(vec3(-bx, -by, -bz));
+							Model->pushMatrix();
+								bx = 0; // rotate around ankle
+								by = (meshes[currIndex][ANKLE_RB]->min.y + meshes[currIndex][ANKLE_RB]->max.y)/2;
+								bz = (meshes[currIndex][ANKLE_RB]->min.z + meshes[currIndex][ANKLE_RB]->max.z)/2;
+								Model->translate(vec3(bx, by, bz));
+								Model->rotate(backFrames[backFrameCount].ankle_angle, vec3(1, 0, 0)); 
+								Model->translate(vec3(-bx, -by, -bz));
+								Model->pushMatrix();
+									bx = 0; // rotate around pastern
+									by = (meshes[currIndex][PASTERN_RB]->min.y + meshes[currIndex][PASTERN_RB]->max.y)/2;
+									bz = (meshes[currIndex][PASTERN_RB]->min.z + meshes[currIndex][PASTERN_RB]->max.z)/2;
+									Model->translate(vec3(bx, by, bz));
+									Model->rotate(backFrames[backFrameCount].hoof_angle, vec3(1, 0, 0)); 
+									Model->translate(vec3(-bx, -by, -bz));
+									setModel(texProg, Model);
+									meshes[currIndex][HOOF_RB]->draw(texProg);
+								Model->popMatrix();
+								setModel(texProg, Model);
+								meshes[currIndex][PASTERN_RB]->draw(texProg);
+								meshes[currIndex][ANKLE_RB]->draw(texProg);
+							Model->popMatrix();
+							setModel(texProg, Model);
+							meshes[currIndex][LOWLEG_RB]->draw(texProg);
+							meshes[currIndex][KNEE_RB]->draw(texProg);
+						Model->popMatrix();
+						setModel(texProg, Model);
+						meshes[currIndex][UPLEG_RB]->draw(texProg);
+					Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][STIFLE_RB]->draw(texProg);
+				Model->popMatrix();
+				// Left back leg
+				int backLeftFrameCount = (backFrameCount - 1) % backFrames.size(); // Right leg is 1 frame ahead of the left leg
+				Model->pushMatrix();
+					bx = 0; // rotate around top of right back leg
+					by = meshes[currIndex][STIFLE_LB]->max.y;
+					bz = (meshes[currIndex][STIFLE_LB]->min.z + meshes[currIndex][STIFLE_LB]->max.z)/2;
+					Model->translate(vec3(bx, by, bz));
+					Model->rotate(backFrames[backLeftFrameCount].stifle_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+					Model->translate(vec3(-bx, -by, -bz));
+					Model->pushMatrix();
+						bx = 0; // rotate around top of upper leg
+						by = meshes[currIndex][UPLEG_LB]->max.y;
+						bz = (meshes[currIndex][UPLEG_LB]->min.z + meshes[currIndex][UPLEG_LB]->max.z)/2;
+						Model->translate(vec3(bx, by, bz));
+						Model->rotate(backFrames[backLeftFrameCount].upper_angle, vec3(1, 0, 0)); 
+						Model->translate(vec3(-bx, -by, -bz));
+						Model->pushMatrix();
+							bx = 0; // rotate around knee
+							by = (meshes[currIndex][KNEE_LB]->min.y + meshes[currIndex][KNEE_LB]->max.y)/2;
+							bz = (meshes[currIndex][KNEE_LB]->min.z + meshes[currIndex][KNEE_LB]->max.z)/2;
+							Model->translate(vec3(bx, by, bz));
+							Model->rotate(backFrames[backLeftFrameCount].knee_angle, vec3(1, 0, 0)); 
+							Model->translate(vec3(-bx, -by, -bz));
+							Model->pushMatrix();
+								bx = 0; // rotate around ankle
+								by = (meshes[currIndex][ANKLE_LB]->min.y + meshes[currIndex][ANKLE_LB]->max.y)/2;
+								bz = (meshes[currIndex][ANKLE_LB]->min.z + meshes[currIndex][ANKLE_LB]->max.z)/2;
+								Model->translate(vec3(bx, by, bz));
+								Model->rotate(backFrames[backLeftFrameCount].ankle_angle, vec3(1, 0, 0)); 
+								Model->translate(vec3(-bx, -by, -bz));
+								Model->pushMatrix();
+									bx = 0; // rotate around pastern
+									by = (meshes[currIndex][PASTERN_LB]->min.y + meshes[currIndex][PASTERN_LB]->max.y)/2;
+									bz = (meshes[currIndex][PASTERN_LB]->min.z + meshes[currIndex][PASTERN_LB]->max.z)/2;
+									Model->translate(vec3(bx, by, bz));
+									Model->rotate(backFrames[backLeftFrameCount].hoof_angle, vec3(1, 0, 0)); 
+									Model->translate(vec3(-bx, -by, -bz));
+									setModel(texProg, Model);
+									meshes[currIndex][HOOF_LB]->draw(texProg);
+								Model->popMatrix();
+								setModel(texProg, Model);
+								meshes[currIndex][PASTERN_LB]->draw(texProg);
+								meshes[currIndex][ANKLE_LB]->draw(texProg);
+							Model->popMatrix();
+							setModel(texProg, Model);
+							meshes[currIndex][LOWLEG_LB]->draw(texProg);
+							meshes[currIndex][KNEE_LB]->draw(texProg);
+						Model->popMatrix();
+						setModel(texProg, Model);
+						meshes[currIndex][UPLEG_LB]->draw(texProg);
+					Model->popMatrix();
+					setModel(texProg, Model);
+					meshes[currIndex][STIFLE_LB]->draw(texProg);
+				Model->popMatrix();
+			} else {
+				setModel(texProg, Model);
+				for (int i = 0; i < BASE.size(); i++) {
+					int p = BASE[i];
+					if (p == HEAD) { // draw head
+						Model->pushMatrix();
+							Model->translate(vec3(0, -meshes[currIndex][p]->min.y/10, -meshes[currIndex][p]->min.z/10)); // move head closer to body
+							setModel(texProg, Model);
+							meshes[currIndex][p]->draw(texProg);
+						Model->popMatrix();
+					} else if (p == TAIL) {
+						Model->pushMatrix();
+							Model->translate(vec3(0, 0, -meshes[currIndex][p]->max.z/10)); // move tail closer to body
+							setModel(texProg, Model);
+							meshes[currIndex][p]->draw(texProg);
+						Model->popMatrix();
+					} else {
+						meshes[currIndex][p]->draw(texProg);
+					}
+				}
+				for (int i = 0; i < LEFTBACKLEG.size(); i++) {
+					int p = LEFTBACKLEG[i];
+					meshes[currIndex][p]->draw(texProg);
+				}
+				for (int i = 0; i < LEFTFRONTLEG.size(); i++) {
+					int p = LEFTFRONTLEG[i];
+					meshes[currIndex][p]->draw(texProg);
+				}
+				for (int i = 0; i < RIGHTBACKLEG.size(); i++) {
+					int p = RIGHTBACKLEG[i];
+					meshes[currIndex][p]->draw(texProg);
+				}
+				for (int i = 0; i < RIGHTFRONTLEG.size(); i++) {
+					int p = RIGHTFRONTLEG[i];
+					meshes[currIndex][p]->draw(texProg);
+				}
+			}
 			
 		Model->popMatrix();
 	}
