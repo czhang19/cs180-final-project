@@ -43,15 +43,18 @@ Jillian Empey's S19 Horse obj and animation frames: http://users.csc.calpoly.edu
 Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blending \
 Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
 Getting heights of terrain: https://youtu.be/6E2zjfzMs7c
+Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
 
 ## Features to Add
-- Animate horse movement
-    - Add horse path through terrain
-    - Orient horse normals
-- Animate shooting arrow
-- Add physics-based motion (calculate position + velocity)
-- Add particle effects
-- Add game menu (start, retry)
-- Add score on screen
+- [ ] Animate horse movement
+    - [x] Add horse path through terrain
+    - [x] Horse path should follow height of terrain
+    - [ ] Orient horse normals
+    - [ ] Horse faces the direction it's moving in
+- [ ] Animate shooting arrow
+- [ ] Add physics-based motion (calculate position + velocity)
+- [ ] Add particle effects
+- [ ] Add game menu (start, retry)
+- [ ] Add score on screen
 
 Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html

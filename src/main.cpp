@@ -76,7 +76,7 @@ public:
 
 	// Animation data
 	float lightAngle = 110; 
-	// float gallopHeight = 0; 
+	float gallopHeight = 0; 
 	float gallopAngle = 0;
 	int frontFrameCount = 0;
 	int backFrameCount = 0;
@@ -85,6 +85,9 @@ public:
 	double baseFrameTime = 0;
 	double backFrameTime = 0;
 	double frontFrameTime = 0;
+	double lastFrameTime;
+	double delta; 
+	float horseRotation = -180 * PI/180;
 
 	/* Camera motion/navigation
 		Mode 0 = normal WASD movement, scroll to look around
@@ -110,6 +113,12 @@ public:
 	bool goFront = false;
 	bool goUp = false;
 	bool goDown = false;
+
+	// Mode 1 movement
+	float RUN_SPEED = 8;
+	float TURN_SPEED = 64;
+	float currentSpeed = 0;
+	float currentTurnSpeed = 0;
 
 	// Mode 1 cinematic tour
 	Spline splinepath[1];
@@ -477,14 +486,16 @@ public:
 		
 		initGround(resourceDirectory);
 
-		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+1.2, horse_start.y);
+		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.75, horse_start.y);
 		g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
 		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
 		g_view = glm::normalize(fixedPoint - g_eye);
 
+		lastFrameTime = glfwGetTime();
+
 		// Initialize spline paths
 		float y = 0; // doesn't matter; use terrain height for horse_pos
-		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 30);
+		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 25);
 		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
 	}
 
@@ -763,17 +774,46 @@ public:
 				g_eye -= speed * g_up; 
 			}
 		} else if (mode == 1) {
-			if (goLeft) { // strafe left
-				horse_pos -= speed * vec3(1, 0, 0);
-			} else if (goRight) { // strafe right
-				horse_pos += speed * vec3(1, 0, 0);
-			} else if (goBack) { // dolly backward
-				horse_pos += speed * vec3(0, 0, 1); 
-			} else if (goFront) { // dolly forward
-				horse_pos -= speed * vec3(0, 0, 1); 
+			// if (goLeft) { // strafe left
+			// 	horse_pos -= speed * vec3(1, 0, 0);
+			// } else if (goRight) { // strafe right
+			// 	horse_pos += speed * vec3(1, 0, 0);
+			// } else if (goBack) { // dolly backward
+			// 	horse_pos += speed * vec3(0, 0, 1); 
+			// } else if (goFront) { // dolly forward
+			// 	horse_pos -= speed * vec3(0, 0, 1); 
+			// }
+			// if (!goCamera) 
+			// 	horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+
+			if (goLeft) { 
+				currentTurnSpeed = TURN_SPEED;
+				cout << "turnspeed = " << currentTurnSpeed << endl;
+			} else if (goRight) { 
+				currentTurnSpeed = -TURN_SPEED;
+				cout << "turnspeed = " << currentTurnSpeed << endl;
+			} else {
+				currentTurnSpeed = 0;
+			} 
+
+			if (goBack) { 
+				currentSpeed = -RUN_SPEED;
+			} else if (goFront) { 
+				currentSpeed = RUN_SPEED;
+			} else {
+				currentSpeed = 0;
 			}
+
+			horseRotation += (currentTurnSpeed * delta) * PI/180; 
+			float distance = currentSpeed * delta;
+			float dx = (float) (distance * sin(horseRotation));
+			float dz = (float) (distance * cos(horseRotation));
+			horse_pos.x += dx;
+			horse_pos.z += dz;
+			// cout << horse_pos.x << " " << horse_pos.z << " " << delta << " " << dx << " " << dz << endl;
+
 			if (!goCamera) 
-				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+1.2;
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
 		}
 	}
 
@@ -783,9 +823,13 @@ public:
 		if (goCamera) {
 			if (!splinepath[0].isDone()){
 				splinepath[0].update(frametime);
+				vec3 last_pos = horse_pos; 
 				horse_pos = splinepath[0].getPosition();
-				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+1.2;
-				// g_eye = splinepath[0].getPosition();
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+				float dx = horse_pos.x - last_pos.x;
+				float dz = horse_pos.z - last_pos.z; 
+				if (dx != 0 || dz != 0) 
+					horseRotation = atan2(dx, dz);
 			// } else if (!splinepath[1].isDone()) {
 			// 	splinepath[1].update(frametime);
 			// 	g_eye = splinepath[1].getPosition();
@@ -810,34 +854,46 @@ public:
 	void drawJillyHorse(std::shared_ptr<Program> texProg, shared_ptr<MatrixStack> Model) {
 		int currIndex = 4;
 		Model->pushMatrix();
-			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.2, horse_pos.z));
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+0.75+gallopHeight, horse_pos.z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
-			Model->rotate(-180 * PI/180, vec3(0, 1, 0));
+			Model->rotate(horseRotation, vec3(0, 1, 0)); // facing direction
 			scaleToOrigin(Model, currIndex);
-			// Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // TODO: remove
 			
 			float bx; // temporary vars for rotating parts
 			float by; 
 			float bz;
+			// rotate around front of barrel
+			bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
+			by = meshes[currIndex][BARREL]->max.y;
+			bz = meshes[currIndex][BARREL]->max.z;
+			// by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
+			// bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
+			Model->translate(vec3(bx, by, bz));
+			Model->rotate(gallopAngle*PI/180, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+			Model->translate(vec3(-bx, -by, -bz));
+
 			// Draw base
 			for (int i = 0; i < BASE.size(); i++) {
 				int p = BASE[i];
 				Model->pushMatrix();
 					if (p == 26) { // draw head
-						Model->translate(vec3(0, meshes[currIndex][p]->min.y, meshes[currIndex][p]->min.z));
-						Model->rotate(baseFrames[baseFrameCount].head_angle, vec3(1, 0, 0));
-						Model->translate(vec3(0, -meshes[currIndex][p]->min.y, -meshes[currIndex][p]->min.z));
+						Model->translate(vec3(0, -meshes[currIndex][p]->min.y/10, -meshes[currIndex][p]->min.z/10)); // move head closer to body
+						// Model->translate(vec3(0, meshes[currIndex][p]->min.y, meshes[currIndex][p]->min.z));
+						// Model->rotate(baseFrames[baseFrameCount].head_angle, vec3(1, 0, 0));
+						// Model->translate(vec3(0, -meshes[currIndex][p]->min.y, -meshes[currIndex][p]->min.z));
 					} else if (p == 6) { // draw tail
+						Model->translate(vec3(0, 0, -meshes[currIndex][p]->max.z/10)); // move tail closer to body
 						Model->translate(vec3(0, meshes[currIndex][p]->max.y, meshes[currIndex][p]->max.z));
-						Model->rotate(baseFrames[baseFrameCount].tail_angle, vec3(1, 0, 0));
+						// Model->rotate(baseFrames[baseFrameCount].tail_angle, vec3(÷1, 0, 0));
+						Model->rotate(40*PI/180, vec3(1, 0, 0));
 						Model->translate(vec3(0, -meshes[currIndex][p]->max.y, -meshes[currIndex][p]->max.z));
 					} else { // draw barrel, chest, booty
-						bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
-						by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
-						bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
-						Model->translate(vec3(bx, by, bz));
-						Model->rotate(baseFrames[baseFrameCount].barrel_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
-						Model->translate(vec3(-bx, -by, -bz));
+						// bx = (meshes[currIndex][BARREL]->min.x + meshes[currIndex][BARREL]->max.x)/2; // rotate around barrel center
+						// by = (meshes[currIndex][BARREL]->min.y + meshes[currIndex][BARREL]->max.y)/2;
+						// bz = (meshes[currIndex][BARREL]->min.z + meshes[currIndex][BARREL]->max.z)/2;
+						// Model->translate(vec3(bx, by, bz));
+						// Model->rotate(baseFrames[baseFrameCount].barrel_angle, vec3(1, 0, 0)); // Note: barrel_angle = chest_angle = rear_angle
+						// Model->translate(vec3(-bx, -by, -bz));
 					}
 					setModel(texProg, Model);
 					meshes[currIndex][p]->draw(texProg);
@@ -1157,9 +1213,6 @@ public:
 
 		// Pop matrix stacks.
 		Projection->popMatrix();
-
-		// gallopHeight = sin(glfwGetTime()*3)*0.05;
-		gallopAngle = sin(glfwGetTime()*3)*5; // angle: 0-5 deg
 		
 		// Update horse animation variables 
 		double curr = glfwGetTime();
@@ -1186,6 +1239,12 @@ public:
 				backFrameCount = 0;
 			}	
 		}
+
+		gallopHeight = sin(2*PI * (curr - baseFrameTime)/cycleLength - PI)*0.1;
+		gallopAngle = sin(2*PI * (curr - baseFrameTime)/cycleLength)*2; // angle: 0-5 deg
+
+		delta = curr - lastFrameTime;
+		lastFrameTime = curr;
 	}
 };
 
