@@ -1124,6 +1124,12 @@ public:
 		Model->popMatrix();
 	}
 
+	vec3 getMidpoint(int currIndex, int bodyPart) {
+		return vec3((meshes[currIndex][bodyPart]->min.x + meshes[currIndex][bodyPart]->max.x)/2,
+					(meshes[currIndex][bodyPart]->min.y + meshes[currIndex][bodyPart]->max.y)/2,
+					(meshes[currIndex][bodyPart]->min.z + meshes[currIndex][bodyPart]->max.z)/2);
+	}
+
 	void drawDummy(std::shared_ptr<Program> prog, shared_ptr<MatrixStack> Model) {
 		int currIndex = 5;
 		Model->pushMatrix();
@@ -1135,25 +1141,146 @@ public:
 			Model->rotate(-90*PI/180, vec3(1, 0, 0));
 			scaleToOrigin(Model, currIndex);
 			SetMaterial(prog, 0);
-			// setAndDrawModel(prog, Model, currIndex);
+
+			float bx; // temporary vars for rotating parts
+			float by; 
+			float bz;
+			vec3 temp; 
+
+			// draw upper body
+			Model->pushMatrix();
+				temp = getMidpoint(currIndex, BELLY); // rotate around belly
+				Model->translate(temp);
+				Model->rotate(-75*PI/180, vec3(0, 0, 1)); // TODO: Rotate according to g_eye/g_lookAt
+				Model->translate(-temp);
+				// draw tilted head facing almost forward 
+				Model->pushMatrix();
+					temp = getMidpoint(currIndex, NECK); // rotate around neck
+					Model->translate(temp);
+					Model->rotate(10*PI/180, vec3(1, 0, 0)); 
+					Model->rotate(65*PI/180, vec3(0, 0, 1)); 
+					Model->translate(-temp);
+					setModel(prog, Model);
+					meshes[currIndex][NECK]->draw(prog);
+					meshes[currIndex][HEAD_D]->draw(prog);
+				Model->popMatrix();
+				setModel(prog, Model);
+				meshes[currIndex][BELLY]->draw(prog);
+				meshes[currIndex][TORSO]->draw(prog);
+				// draw right arm
+				Model->pushMatrix();
+					temp = getMidpoint(currIndex, SHOULDER_R); // rotate around right shoulder
+					Model->translate(temp);
+					Model->rotate(20*PI/180, vec3(0, 0, 1)); 
+					Model->translate(-temp);
+					Model->pushMatrix();
+						temp = getMidpoint(currIndex, ELBOW_R); // rotate around right elbow
+						Model->translate(temp);
+						Model->rotate(145*PI/180, vec3(0, 0, 1)); 
+						Model->translate(-temp);
+						setModel(prog, Model);
+						meshes[currIndex][ELBOW_R]->draw(prog);
+						meshes[currIndex][FOREARM_R]->draw(prog);
+						meshes[currIndex][WRIST_R]->draw(prog);
+						meshes[currIndex][HAND_R]->draw(prog);
+					Model->popMatrix();
+					setModel(prog, Model);
+					meshes[currIndex][SHOULDER_R]->draw(prog);
+					meshes[currIndex][BICEP_R]->draw(prog);
+				Model->popMatrix();
+				// draw left arm
+				Model->pushMatrix();
+					temp = getMidpoint(currIndex, SHOULDER_L); // rotate around left shoulder
+					Model->translate(temp);
+					Model->rotate(-20*PI/180, vec3(0, 0, 1)); 
+					Model->translate(-temp);
+					Model->pushMatrix();
+						temp = getMidpoint(currIndex, ELBOW_L); // rotate around left elbow
+						Model->translate(temp);
+						Model->rotate(-20*PI/180, vec3(0, 0, 1)); 
+						Model->translate(-temp);
+						Model->pushMatrix();
+							temp = getMidpoint(currIndex, WRIST_L); // rotate around left wrist
+							Model->translate(temp);
+							Model->rotate(-90*PI/180, vec3(0, 1, 0)); 
+							Model->translate(-temp);
+							setModel(prog, Model);
+							meshes[currIndex][WRIST_L]->draw(prog);
+							meshes[currIndex][HAND_L]->draw(prog);
+						Model->popMatrix();
+						setModel(prog, Model);
+						meshes[currIndex][ELBOW_L]->draw(prog);
+						meshes[currIndex][FOREARM_L]->draw(prog);
+					Model->popMatrix();
+					setModel(prog, Model);
+					meshes[currIndex][SHOULDER_L]->draw(prog);
+					meshes[currIndex][BICEP_L]->draw(prog);
+				Model->popMatrix();
+			Model->popMatrix();
 			setModel(prog, Model);
-			for (int i = 0; i < BODY.size(); i++) {
-				meshes[currIndex][BODY[i]]->draw(prog);
-			}
-			for (int i = 0; i < RIGHTARM.size(); i++) {
-				meshes[currIndex][RIGHTARM[i]]->draw(prog);
-			}
-			for (int i = 0; i < LEFTARM.size(); i++) {
-				meshes[currIndex][LEFTARM[i]]->draw(prog);
-			}
-			for (int i = 0; i < RIGHTLEG.size(); i++) {
-				meshes[currIndex][RIGHTLEG[i]]->draw(prog);
-			}
-			for (int i = 0; i < LEFTLEG.size(); i++) {
-				meshes[currIndex][LEFTLEG[i]]->draw(prog);
-			}
+			meshes[currIndex][HIPS]->draw(prog);
+			
+			// draw right leg
+			Model->pushMatrix();
+				temp = getMidpoint(currIndex, PELVIS_R); // rotate around right pelvis
+				Model->translate(temp);
+				Model->rotate(-45*PI/180, vec3(1, 0, 0)); 
+				Model->rotate(-30*PI/180, vec3(0, 1, 0)); 
+				Model->translate(-temp);
+				Model->pushMatrix();
+					temp = getMidpoint(currIndex, KNEE_R); // rotate around right knee
+					Model->translate(temp);
+					Model->rotate(50*PI/180, vec3(1, 0, 0)); 
+					Model->rotate(45*PI/180, vec3(0, 1, 0)); 
+					Model->translate(-temp);
+					Model->pushMatrix();
+						temp = getMidpoint(currIndex, ANKLE_R); // rotate around right ankle
+						Model->translate(temp);
+						Model->rotate(-30*PI/180, vec3(0, 0, 1)); 
+						Model->translate(-temp);
+						setModel(prog, Model);
+						meshes[currIndex][ANKLE_R]->draw(prog);
+						meshes[currIndex][FOOT_R]->draw(prog);
+					Model->popMatrix();
+					setModel(prog, Model);
+					meshes[currIndex][KNEE_R]->draw(prog);
+					meshes[currIndex][LOWLEG_R]->draw(prog);
+				Model->popMatrix();
+				setModel(prog, Model);
+				meshes[currIndex][PELVIS_R]->draw(prog);
+				meshes[currIndex][UPLEG_R]->draw(prog);
+			Model->popMatrix();
 
-
+			// draw left leg
+			Model->pushMatrix();
+				temp = getMidpoint(currIndex, PELVIS_L); // rotate around left pelvis
+				Model->translate(temp);
+				Model->rotate(45*PI/180, vec3(1, 0, 0)); 
+				Model->rotate(-30*PI/180, vec3(0, 1, 0)); 
+				Model->translate(-temp);
+				Model->pushMatrix();
+					temp = getMidpoint(currIndex, KNEE_L); // rotate around left knee
+					Model->translate(temp);
+					Model->rotate(-50*PI/180, vec3(1, 0, 0)); 
+					Model->rotate(45*PI/180, vec3(0, 1, 0)); 
+					Model->translate(-temp);
+					Model->pushMatrix();
+						temp = getMidpoint(currIndex, ANKLE_L); // rotate around left ankle
+						Model->translate(temp);
+						Model->rotate(30*PI/180, vec3(0, 0, 1)); 
+						Model->translate(-temp);
+						setModel(prog, Model);
+						meshes[currIndex][ANKLE_L]->draw(prog);
+						meshes[currIndex][FOOT_L]->draw(prog);
+					Model->popMatrix();
+					setModel(prog, Model);
+					meshes[currIndex][KNEE_L]->draw(prog);
+					meshes[currIndex][LOWLEG_L]->draw(prog);
+				Model->popMatrix();
+				setModel(prog, Model);
+				meshes[currIndex][PELVIS_L]->draw(prog);
+				meshes[currIndex][UPLEG_L]->draw(prog);
+			Model->popMatrix();
 		Model->popMatrix();
 	}
 
