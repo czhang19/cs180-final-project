@@ -54,13 +54,18 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
     - [x] Horse faces the direction it's moving in
     - [ ] Shade horse material
 - [ ] Animate dummy
-    - [ ] Draw dummy sitting on horse
+    - [x] Draw dummy sitting on horse
     - [ ] Animate dummy shooting arrow
 - [ ] Add physics-based motion (calculate position + velocity)
     - [ ] Find middle of sceen, use unproject
-    - [ ] Animate arrow with velocity
+    - [x] Animate arrow with velocity
 - [ ] Add particle effects
 - [ ] Add game menu (start, retry)
 - [ ] Add score on screen
 
 Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html
+
+## Issues
+1. How to enable alpha blending with particles without enabling for rest of the scene?
+2. How to use rotations to orient my arrow? How to make arrow more visible? 
+3. How to put text on the screen? 

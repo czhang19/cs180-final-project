@@ -54,7 +54,7 @@ public:
 	// the particle system
 	particleSys *thePartSystem;
 
-	// Our geometry - multi-meesh shapes to be used 
+	// Our geometry - multi-mesh shapes to be used 
 	vector<vector<shared_ptr<Shape>>> meshes;
 	vector<vector<shared_ptr<Texture>>> materials;
 	GLint unit = 0;
@@ -77,12 +77,8 @@ public:
 	
 	unsigned int cubeMapTexture; 
 
-	// Images to use as a textures
-	shared_ptr<Texture> texture1;	
-	shared_ptr<Texture> texture2;
-	shared_ptr<Texture> texture3;
-	shared_ptr<Texture> texture4;
-	shared_ptr<Texture> texture5; // particle texture
+	// Images to use as textures
+	vector<shared_ptr<Texture>> textures;
 
 	// Animation data
 	float lightAngle = 110; 
@@ -403,36 +399,18 @@ public:
 	}
 
 	void initTex(const std::string& resourceDirectory){
-		//read in a load the texture
-		texture1 = make_shared<Texture>();
-  		texture1->setFilename(resourceDirectory + "/canyon/diffuse.png");
-  		texture1->init();
-  		texture1->setUnit(unit++);
-  		texture1->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		vector<string> texNames = {"/canyon/diffuse.png", "/cartoonWood.jpg", "/grass/free grass.png", "/target/ARCHERY_TARGET_DIFF.png", "/alpha.bmp",
+									"/bow/bow_diffuse.jpg", "/bow/clean_arrows.jpg"}; 
+		vector<int> modes = {GL_CLAMP_TO_EDGE, GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE};
 
-  		texture2 = make_shared<Texture>();
-  		texture2->setFilename(resourceDirectory + "/cartoonWood.jpg");
-  		texture2->init();
-  		texture2->setUnit(unit++);
-		texture2->setWrapModes(GL_REPEAT, GL_REPEAT);
-
-		texture3 = make_shared<Texture>();
-  		texture3->setFilename(resourceDirectory + "/grass/free grass.png");
-  		texture3->init();
-  		texture3->setUnit(unit++);
-  		texture3->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-		texture4 = make_shared<Texture>();
-  		texture4->setFilename(resourceDirectory + "/target/ARCHERY_TARGET_DIFF.png");
-  		texture4->init();
-  		texture4->setUnit(unit++);
-  		texture4->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-		  
-		texture5 = make_shared<Texture>();
-  		texture5->setFilename(resourceDirectory + "/alpha.bmp");
-  		texture5->init();
-  		texture5->setUnit(unit++);
-  		texture5->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		for (int i = 0; i < texNames.size(); i++) {
+			shared_ptr<Texture> texture = make_shared<Texture>();
+			texture->setFilename(resourceDirectory + texNames[i]);
+			texture->init();
+			texture->setUnit(unit++);
+			texture->setWrapModes(modes[i], modes[i]);
+			textures.push_back(texture);
+		}
 	} 
 	
 	void initGeom(const std::string& resourceDirectory)
@@ -514,7 +492,6 @@ public:
 				}
 			}
 		}
-		cout << "bow materials: " << materials[6].size() << endl;
 
 		for (int c = 0; c < clusters.size(); c++) {
 			vector<vector<vector<float>>> randomClusters;
@@ -632,7 +609,7 @@ public:
 	void drawGround(shared_ptr<Program> curS) {
      	curS->bind();
      	glBindVertexArray(GroundVertexArrayID);
-     	texture1->bind(curS->getUniform("Texture0"));
+     	textures[0]->bind(curS->getUniform("Texture0"));
 		//draw the ground plane 
   		SetModel(vec3(0, -10, 0), 0, 0, 1, curS);
   		glEnableVertexAttribArray(0);
@@ -1426,7 +1403,7 @@ public:
 		SetView(texProg);
 		glUniform3f(texProg->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
 		glUniform1i(texProg->getUniform("flip"), 1);
-		texture2->bind(texProg->getUniform("Texture0"));
+		textures[1]->bind(texProg->getUniform("Texture0"));
 		// Draw stable
 		Model->pushMatrix();
 			currIndex = 0;
@@ -1468,7 +1445,7 @@ public:
 
 		// Draw grass
 		currIndex = 3;
-		texture3->bind(texProg->getUniform("Texture0"));
+		textures[2]->bind(texProg->getUniform("Texture0"));
 		for (int c = 0; c < clusters.size(); c++) {
 			for (int i = 0; i < sizes[c]; i++) {
 				for (int j = 0; j < sizes[c]; j++) {
@@ -1490,7 +1467,7 @@ public:
 		currIndex = 6;
 		vec3 temp;
 		// materials[currIndex][1]->bind(texProg->getUniform("Texture0")); // TODO: add bow texture
-		texture2->bind(texProg->getUniform("Texture0"));
+		textures[5]->bind(texProg->getUniform("Texture0"));
 		Model->pushMatrix();
 			if (horseIsMoving)
 				Model->translate(vec3(0, gallopHeight, 0));
@@ -1509,7 +1486,7 @@ public:
 		// draw arrow
 		currIndex = 6;
 		// materials[currIndex][1]->bind(texProg->getUniform("Texture0")); // TODO: add arrow texture
-		texture2->bind(texProg->getUniform("Texture0"));
+		textures[6]->bind(texProg->getUniform("Texture0"));
 		if (launched) {
 			Model->pushMatrix();
 				Model->translate(arrow_pos);
@@ -1540,7 +1517,7 @@ public:
 
 		// draw targets
 		currIndex = 7;
-		texture4->bind(texProg->getUniform("Texture0"));
+		textures[3]->bind(texProg->getUniform("Texture0"));
 		for (int i = 0; i < target_pos.size(); i++) {
 			Model->pushMatrix();
 				Model->translate(target_pos[i]);
@@ -1555,7 +1532,7 @@ public:
 
 		// Draw
 		partProg->bind();
-		texture5->bind(partProg->getUniform("alphaTexture"));
+		textures[4]->bind(partProg->getUniform("alphaTexture"));
 		CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix())));
 		SetView(partProg);
 		// CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())));	
