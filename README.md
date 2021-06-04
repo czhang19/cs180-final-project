@@ -50,9 +50,14 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
     - [x] Add horse path through terrain
     - [x] Horse path should follow height of terrain
     - [ ] Orient horse normals
-    - [ ] Horse faces the direction it's moving in
-- [ ] Animate shooting arrow
+    - [x] Horse faces the direction it's moving in
+    - [ ] Shade horse material
+- [ ] Animate dummy
+    - [ ] Draw dummy sitting on horse
+    - [ ] Animate dummy shooting arrow
 - [ ] Add physics-based motion (calculate position + velocity)
+    - [ ] Find middle of sceen, use unproject
+    - [ ] Animate arrow with velocity
 - [ ] Add particle effects
 - [ ] Add game menu (start, retry)
 - [ ] Add score on screen

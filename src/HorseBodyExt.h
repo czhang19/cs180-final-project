@@ -8,9 +8,9 @@ const int CHEST = 30;
 const int BARREL = 17;
 const int BOOTY = 29;
 const int TAIL = 6;
-const int HEAD = 26;
+const int HEAD_H = 26;
 
-#define BASE vector<int>{CHEST, BARREL, BOOTY, TAIL, HEAD}
+#define BASE vector<int>{CHEST, BARREL, BOOTY, TAIL, HEAD_H}
 
 // LEFT
 const int HOOF_LF = 1;

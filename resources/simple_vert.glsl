@@ -4,7 +4,7 @@ layout(location = 1) in vec3 vertNor;
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
-uniform vec3 lightPos;
+uniform vec3 light; // positional light direction
 
 out vec3 fragNor;
 out vec3 lightDir;
@@ -13,7 +13,9 @@ out vec3 EPos;
 void main()
 {
 	gl_Position = P * V * M * vertPos;
-	fragNor = (V*M * vec4(vertNor, 0.0)).xyz;
-	lightDir = vec3(V*(vec4(lightPos - (M*vertPos).xyz, 0.0)));
-	EPos = vec3(1); //PULLED for release
+	
+	//update these as needed
+	fragNor = (V * M * vec4(vertNor, 0.0)).xyz; 
+	lightDir = (V * vec4(light, 0.0)).xyz;
+	EPos = (V * M * vertPos).xyz;
 }

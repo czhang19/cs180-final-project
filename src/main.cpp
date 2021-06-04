@@ -18,6 +18,7 @@
 #include "Bezier.h"
 #include "Spline.h"
 #include "HorseBodyExt.h"
+#include "Dummy.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -304,7 +305,7 @@ public:
 		prog->addUniform("MatDif");
 		prog->addUniform("MatSpec");
 		prog->addUniform("MatShine");
-		prog->addUniform("lightPos");
+		prog->addUniform("light");
 		prog->addAttribute("vertPos");
 		prog->addAttribute("vertNor");
 		prog->addAttribute("vertTex"); //silence error
@@ -367,9 +368,9 @@ public:
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", ""};
-		vector<bool> hasTextures = {true, true, true, true, true};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", ""};
+		vector<bool> hasTextures = {true, true, true, true, true, true};
 		int numObj = objFiles.size();
 		
 		vector<vector<tinyobj::shape_t>> TOshapes(numObj);
@@ -674,6 +675,33 @@ public:
 		return textureID;
 	} 
 
+	void SetMaterial(shared_ptr<Program> curS, int i) {
+		float r;
+		float g;
+		float b;
+
+    	switch (i) {
+    		case 0: // light brown 
+    			r = 175/255.0f;
+				g = 147/255.0f;
+				b = 101/255.0f;
+				glUniform3f(curS->getUniform("MatAmb"), r/5, g/5, b/5);
+    			glUniform3f(curS->getUniform("MatDif"), r, g, b);
+    			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
+    			glUniform1f(curS->getUniform("MatShine"), 100.0);
+    		break;
+			case 1: // dark brown 
+				r = 191/255.0f;
+				g = 120/255.0f;
+				b = 82/255.0f;
+				glUniform3f(curS->getUniform("MatAmb"), r/5, g/5, b/5);
+    			glUniform3f(curS->getUniform("MatDif"), r, g, b);
+    			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
+    			glUniform1f(curS->getUniform("MatShine"), 100.0);
+			break;
+  		}
+	}
+
 	/* helper function to set model trasnforms */
   	void SetModel(vec3 trans, float rotY, float rotX, float sc, shared_ptr<Program> curS) {
   		mat4 Trans = glm::translate( glm::mat4(1.0f), trans);
@@ -822,7 +850,7 @@ public:
 		Model->pushMatrix();
 			if (horseIsMoving)
 				Model->translate(vec3(0, gallopHeight, 0));
-			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+0.75, horse_pos.z));
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+0.85, horse_pos.z));
 			Model->scale(vec3(0.2, 0.2, 0.2));
 			Model->rotate(horseRotation, vec3(0, 1, 0)); // facing direction
 			scaleToOrigin(Model, currIndex);
@@ -1057,7 +1085,7 @@ public:
 				setModel(texProg, Model);
 				for (int i = 0; i < BASE.size(); i++) {
 					int p = BASE[i];
-					if (p == HEAD) { // draw head
+					if (p == HEAD_H) { // draw head
 						Model->pushMatrix();
 							Model->translate(vec3(0, -meshes[currIndex][p]->min.y/10, -meshes[currIndex][p]->min.z/10)); // move head closer to body
 							setModel(texProg, Model);
@@ -1093,7 +1121,39 @@ public:
 					meshes[currIndex][p]->draw(texProg);
 				}
 			}
-			
+		Model->popMatrix();
+	}
+
+	void drawDummy(std::shared_ptr<Program> prog, shared_ptr<MatrixStack> Model) {
+		int currIndex = 5;
+		Model->pushMatrix();
+			if (horseIsMoving)
+				Model->translate(vec3(0, gallopHeight, 0));
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.35, horse_pos.z));
+			Model->scale(vec3(0.1, 0.1, 0.1));
+			Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
+			Model->rotate(-90*PI/180, vec3(1, 0, 0));
+			scaleToOrigin(Model, currIndex);
+			SetMaterial(prog, 0);
+			// setAndDrawModel(prog, Model, currIndex);
+			setModel(prog, Model);
+			for (int i = 0; i < BODY.size(); i++) {
+				meshes[currIndex][BODY[i]]->draw(prog);
+			}
+			for (int i = 0; i < RIGHTARM.size(); i++) {
+				meshes[currIndex][RIGHTARM[i]]->draw(prog);
+			}
+			for (int i = 0; i < LEFTARM.size(); i++) {
+				meshes[currIndex][LEFTARM[i]]->draw(prog);
+			}
+			for (int i = 0; i < RIGHTLEG.size(); i++) {
+				meshes[currIndex][RIGHTLEG[i]]->draw(prog);
+			}
+			for (int i = 0; i < LEFTLEG.size(); i++) {
+				meshes[currIndex][LEFTLEG[i]]->draw(prog);
+			}
+
+
 		Model->popMatrix();
 	}
 
@@ -1205,6 +1265,13 @@ public:
 			}
 		}
 		texProg->unbind();
+
+		prog->bind();
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+		SetView(prog);
+		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
+		drawDummy(prog, Model);
+		prog->unbind();
 
 		drawGround(texProg);
 

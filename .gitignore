@@ -5,3 +5,6 @@
 .DS_Store
 
 .vscode/
+
+# Obj files
+/resources/target/*
