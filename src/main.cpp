@@ -74,6 +74,7 @@ public:
 	shared_ptr<Texture> texture1;	
 	shared_ptr<Texture> texture2;
 	shared_ptr<Texture> texture3;
+	shared_ptr<Texture> texture4;
 
 	// Animation data
 	float lightAngle = 110; 
@@ -139,6 +140,8 @@ public:
 	vec3 g = vec3(0.0f, -1.0f, 0.0f);
 	vec3 arrow_pos; 
 	float arrowRotationY; 
+	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
+	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 20.0f}; 
 
 	// Random scenery
 	time_t rseed; 
@@ -382,13 +385,19 @@ public:
   		texture3->init();
   		texture3->setUnit(unit++);
   		texture3->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+		texture4 = make_shared<Texture>();
+  		texture4->setFilename(resourceDirectory + "/target/ARCHERY_TARGET_DIFF.png");
+  		texture4->init();
+  		texture4->setUnit(unit++);
+  		texture4->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	} 
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj", "/ANIMATEDBOW.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", "", "/bow/"};
-		vector<bool> hasTextures = {true, true, true, true, true, true, true};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj", "/ANIMATEDBOW.obj", "/target/ARCHERY_Target.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", "", "/bow/", ""};
+		vector<bool> hasTextures = {true, true, true, true, true, true, true, true};
 		int numObj = objFiles.size();
 		
 		vector<vector<tinyobj::shape_t>> TOshapes(numObj);
@@ -1463,6 +1472,19 @@ public:
 				Model->translate(-temp); // move to origin
 				setModel(texProg, Model);
 				meshes[currIndex][0]->draw(texProg); // arrow
+			Model->popMatrix();
+		}
+
+		// draw targets
+		currIndex = 7;
+		texture4->bind(texProg->getUniform("Texture0"));
+		for (int i = 0; i < target_pos.size(); i++) {
+			Model->pushMatrix();
+				Model->translate(target_pos[i]);
+				Model->rotate(target_rot[i], vec3(0, 1, 0));
+				// Model->scale(vec3(0.25f, 0.25f, 0.25f));
+				scaleToOrigin(Model, currIndex);
+				setAndDrawModel(texProg, Model, currIndex);
 			Model->popMatrix();
 		}
 
