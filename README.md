@@ -32,7 +32,8 @@ Cubemap generator: https://jaxry.github.io/panorama-to-cubemap/ \
 Terrain: https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-canyon \
 Stable: https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html \
 Horse: https://www.cgtrader.com/free-3d-models/animals/mammal/realtime-horse \
-Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly 
+Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly \
+Bow and Arrow: https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow
 
 ## Testers
 Horse 2: https://www.cgtrader.com/free-3d-models/animals/other/horse-b0fa928c-b67b-43cd-a003-7ea4dc40da77

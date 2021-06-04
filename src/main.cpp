@@ -132,6 +132,14 @@ public:
 	float camRadius = 3;
 	vec3 spherePos = vec3(0, 0, camRadius);
 
+	// Arrow Animation
+	bool launched = false; 
+	float h = 0.01f;
+	vec3 v = vec3(0.0f, 0.0f, 0.0f);
+	vec3 g = vec3(0.0f, -1.0f, 0.0f);
+	vec3 arrow_pos; 
+	float arrowRotationY; 
+
 	// Random scenery
 	time_t rseed; 
 
@@ -161,10 +169,10 @@ public:
 				goBack = true;
 			if (key == GLFW_KEY_W) // dolly forward
 				goFront = true;
-			if (key == GLFW_KEY_Q) // go up
-				goUp = true;
-			if (key == GLFW_KEY_E) // go down
+			if (key == GLFW_KEY_Q) // go down
 				goDown = true;
+			if (key == GLFW_KEY_E) // go up
+				goUp = true;
 		} else if (action == GLFW_RELEASE) {
 			if (key == GLFW_KEY_A)
 				goLeft = false;
@@ -175,9 +183,9 @@ public:
 			if (key == GLFW_KEY_W) 
 				goFront = false;
 			if (key == GLFW_KEY_Q) 
-				goUp = false;
-			if (key == GLFW_KEY_E) 
 				goDown = false;
+			if (key == GLFW_KEY_E) 
+				goUp = false;
 		}
 		// Debugging tool to determine current eye location
 		if (key == GLFW_KEY_P && action == GLFW_PRESS){
@@ -236,6 +244,16 @@ public:
 				g_view = glm::normalize(fixedPoint - g_eye);
 			}
 		}
+
+		if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+			if (mode == 1) { // only allow archery in mode 1
+				launched = !launched;
+				if (launched) {
+					arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
+					v = -spherePos*15.0f; 
+				}
+			}
+		}	
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
@@ -368,9 +386,9 @@ public:
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", ""};
-		vector<bool> hasTextures = {true, true, true, true, true, true};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj", "/ANIMATEDBOW.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", "", "/bow/"};
+		vector<bool> hasTextures = {true, true, true, true, true, true, true};
 		int numObj = objFiles.size();
 		
 		vector<vector<tinyobj::shape_t>> TOshapes(numObj);
@@ -445,12 +463,7 @@ public:
 				}
 			}
 		}
-		// cout << "jilly horse: " << meshes[4].size() << " shapes" << endl;
-		// for (int i = 0; i < meshes[4].size(); i++) {
-		// 	cout << i << ") x: "  << meshes[4][i]->min.x << ", " << meshes[4][i]->max.x 
-		// 				<< " y: " << meshes[4][i]->min.y << ", " << meshes[4][i]->max.y 
-		// 				<< " z: " << meshes[4][i]->min.z << ", " << meshes[4][i]->max.z << endl;
-		// }
+		cout << "bow materials: " << materials[6].size() << endl;
 		
 		vector<std::string> faces {
 			"px.jpg",
@@ -1172,17 +1185,26 @@ public:
 					temp = getMidpoint(currIndex, SHOULDER_R); // rotate around right shoulder
 					Model->translate(temp);
 					Model->rotate(20*PI/180, vec3(0, 0, 1)); 
+					Model->rotate(-20*PI/180, vec3(1, 0, 0)); 
 					Model->translate(-temp);
 					Model->pushMatrix();
 						temp = getMidpoint(currIndex, ELBOW_R); // rotate around right elbow
 						Model->translate(temp);
 						Model->rotate(145*PI/180, vec3(0, 0, 1)); 
+						Model->rotate(-20*PI/180, vec3(1, 0, 0)); 
 						Model->translate(-temp);
+						Model->pushMatrix();
+							temp = getMidpoint(currIndex, WRIST_R); // rotate around right wrist
+							Model->translate(temp);
+							Model->rotate(-90*PI/180, vec3(0, 1, 0)); 
+							Model->translate(-temp);
+							setModel(prog, Model);
+							meshes[currIndex][WRIST_R]->draw(prog);
+							meshes[currIndex][HAND_R]->draw(prog);
+						Model->popMatrix();
 						setModel(prog, Model);
 						meshes[currIndex][ELBOW_R]->draw(prog);
 						meshes[currIndex][FOREARM_R]->draw(prog);
-						meshes[currIndex][WRIST_R]->draw(prog);
-						meshes[currIndex][HAND_R]->draw(prog);
 					Model->popMatrix();
 					setModel(prog, Model);
 					meshes[currIndex][SHOULDER_R]->draw(prog);
@@ -1391,6 +1413,59 @@ public:
 				}
 			}
 		}
+
+		// draw bow
+		currIndex = 6;
+		vec3 temp;
+		// materials[currIndex][1]->bind(texProg->getUniform("Texture0")); // TODO: add bow texture
+		texture2->bind(texProg->getUniform("Texture0"));
+		Model->pushMatrix();
+			if (horseIsMoving)
+				Model->translate(vec3(0, gallopHeight, 0));
+			Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.65, horse_pos.z));
+			temp = getMidpoint(currIndex, 1);
+			Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
+			Model->translate(vec3(0.3f, 0, 0.1f)); // move a little forward
+			Model->rotate(5*PI/180, vec3(0, 1, 0));
+			Model->rotate(90*PI/180, vec3(1, 0, 0));
+			Model->scale(vec3(0.25f, 0.25f, 0.25f));
+			Model->translate(-temp); // move to origin
+			setModel(texProg, Model);
+			meshes[currIndex][1]->draw(texProg); // bow
+		Model->popMatrix();
+
+		// draw arrow
+		currIndex = 6;
+		// materials[currIndex][1]->bind(texProg->getUniform("Texture0")); // TODO: add arrow texture
+		texture2->bind(texProg->getUniform("Texture0"));
+		if (launched) {
+			Model->pushMatrix();
+				Model->translate(arrow_pos);
+				temp = getMidpoint(currIndex, 0);
+				Model->rotate(arrowRotationY-90*PI/180, vec3(0, 1, 0)); 
+				Model->rotate(90*PI/180, vec3(1, 0, 0));
+				Model->scale(vec3(0.25f, 0.25f, 0.25f));
+				Model->translate(-temp); // move to origin
+				setModel(texProg, Model);
+				meshes[currIndex][0]->draw(texProg); // arrow
+			Model->popMatrix();
+		} else { // draw default position
+			Model->pushMatrix();
+				if (horseIsMoving)
+					Model->translate(vec3(0, gallopHeight, 0));
+				Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
+				temp = getMidpoint(currIndex, 0);
+				Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
+				Model->translate(vec3(0.2f, 0, 0.095f)); // move a little forward
+				Model->rotate(5*PI/180, vec3(0, 1, 0));
+				Model->rotate(90*PI/180, vec3(1, 0, 0));
+				Model->scale(vec3(0.25f, 0.25f, 0.25f));
+				Model->translate(-temp); // move to origin
+				setModel(texProg, Model);
+				meshes[currIndex][0]->draw(texProg); // arrow
+			Model->popMatrix();
+		}
+
 		texProg->unbind();
 
 		prog->bind();
@@ -1436,6 +1511,10 @@ public:
 
 		delta = curr - lastFrameTime;
 		lastFrameTime = curr;
+
+		v += h*g;
+		arrow_pos += h*v; 
+		arrowRotationY = atan2(h*v.x, h*v.z);
 	}
 };
 
