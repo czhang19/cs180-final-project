@@ -20,10 +20,10 @@ public:
 	GLint getID() const { return tid;}
 private:
 	std::string filename;
-	int width;
-	int height;
-	GLuint tid;
-	GLint unit;
+	int width = 0;
+	int height = 0;
+	GLuint tid = 0;
+	GLint unit = 0;
 	
 };
 

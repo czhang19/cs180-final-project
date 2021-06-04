@@ -19,6 +19,7 @@
 #include "Spline.h"
 #include "HorseBodyExt.h"
 #include "Dummy.h"
+#include "particleSys.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -46,6 +47,12 @@ public:
 
 	//Our shader program for skybox
 	std::shared_ptr<Program> cubeProg;
+
+	// Our shader program for particles
+	std::shared_ptr<Program> partProg;
+
+	// the particle system
+	particleSys *thePartSystem;
 
 	// Our geometry - multi-meesh shapes to be used 
 	vector<vector<shared_ptr<Shape>>> meshes;
@@ -75,6 +82,7 @@ public:
 	shared_ptr<Texture> texture2;
 	shared_ptr<Texture> texture3;
 	shared_ptr<Texture> texture4;
+	shared_ptr<Texture> texture5; // particle texture
 
 	// Animation data
 	float lightAngle = 110; 
@@ -143,8 +151,10 @@ public:
 	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
 	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 20.0f}; 
 
-	// Random scenery
-	time_t rseed; 
+	// Grass, Random Scenery
+	vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
+	vector<int> sizes = {3, 2, 2, 2};
+	vector<vector<vector<vector<float>>>> randoms;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -307,12 +317,18 @@ public:
 
 	void init(const std::string& resourceDirectory)
 	{
+		int width, height;
+		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
 		GLSL::checkVersion();
 
 		// Set background color.
-		glClearColor(.72f, .84f, 1.06f, 1.0f);
+		CHECKED_GL_CALL(glClearColor(.72f, .84f, 1.06f, 1.0f));
+
 		// Enable z-buffer test.
-		glEnable(GL_DEPTH_TEST);
+		CHECKED_GL_CALL(glEnable(GL_DEPTH_TEST));
+		CHECKED_GL_CALL(glEnable(GL_BLEND));
+		// CHECKED_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		CHECKED_GL_CALL(glPointSize(24.0f));
 
 		// Initialize the GLSL program that we will use for local shading
 		prog = make_shared<Program>();
@@ -360,10 +376,30 @@ public:
 		cubeProg->addAttribute("vertNor");
 		cubeProg->addAttribute("vertTex"); //silence error
 
-		initTex(resourceDirectory);
+		// Initialize the GLSL program.
+		partProg = make_shared<Program>();
+		partProg->setVerbose(true);
+		partProg->setShaderNames(
+			resourceDirectory + "/billboard_vert.glsl",
+			resourceDirectory + "/billboard_frag.glsl");
+		if (! partProg->init())
+		{
+			std::cerr << "One or more shaders failed to compile... exiting!" << std::endl;
+			exit(1);
+		}
+		partProg->addUniform("P");
+		partProg->addUniform("M");
+		partProg->addUniform("V");
+		partProg->addUniform("alphaTexture");
+		partProg->addAttribute("vertPos");
+		partProg->addAttribute("vertColor");
+		partProg->addAttribute("vertTex"); //silence error
+
+		thePartSystem = new particleSys(vec3(0, 0, 0));
+		thePartSystem->gpuSetup();
 
 		gTheta = -glm::pi<float>()/2;
-		rseed = time(NULL); 
+		srand(time(NULL));
 	}
 
 	void initTex(const std::string& resourceDirectory){
@@ -391,6 +427,12 @@ public:
   		texture4->init();
   		texture4->setUnit(unit++);
   		texture4->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+		  
+		texture5 = make_shared<Texture>();
+  		texture5->setFilename(resourceDirectory + "/alpha.bmp");
+  		texture5->init();
+  		texture5->setUnit(unit++);
+  		texture5->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	} 
 	
 	void initGeom(const std::string& resourceDirectory)
@@ -473,6 +515,21 @@ public:
 			}
 		}
 		cout << "bow materials: " << materials[6].size() << endl;
+
+		for (int c = 0; c < clusters.size(); c++) {
+			vector<vector<vector<float>>> randomClusters;
+			for (int i = 0; i < sizes[c]; i++) {
+				vector<vector<float>> randomSizes;
+				for (int j = 0; j < sizes[c]; j++) {
+					vector<float> randomPos;
+					randomPos.push_back(((float) (rand() % 100))/100 - 0.5);
+					randomPos.push_back(((float) (rand() % 100))/100 - 0.5);
+					randomSizes.push_back(randomPos);
+				}
+				randomClusters.push_back(randomSizes);
+			}
+			randoms.push_back(randomClusters);
+		}
 		
 		vector<std::string> faces {
 			"px.jpg",
@@ -770,18 +827,22 @@ public:
    	/* Camera controls */
 	void SetView(shared_ptr<Program>  shader) {
 		glm::mat4 Cam;
-		// if (enabledFixedTour && fixLookAt) {
-		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); // During the tour, keep lookAt at fixedPoint
-		// } else {
-		// 	//Cam  = glm::lookAt(g_eye, g_eye + g_view, g_up); // In general, calculate lookAt with with g_view and g_eye
-		// 	Cam = glm::lookAt(g_eye, fixedPoint, g_up); 
-		// }
 		if (mode == 0) {
 			Cam = glm::lookAt(g_eye, g_eye + g_view, g_up);
 		} else if (mode == 1) {
 			Cam = glm::lookAt(fixedPoint + spherePos, fixedPoint, g_up); 
 		}
   		glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(Cam));
+	}
+
+	glm::mat4 GetView() {
+		glm::mat4 Cam;
+		if (mode == 0) {
+			Cam = glm::lookAt(g_eye, g_eye + g_view, g_up);
+		} else if (mode == 1) {
+			Cam = glm::lookAt(fixedPoint + spherePos, fixedPoint, g_up); 
+		}
+		return Cam;
 	}
 
 	void updatePosition(float frametime) {
@@ -1321,6 +1382,8 @@ public:
 		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
 		glViewport(0, 0, width, height);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		// Clear framebuffer.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1339,6 +1402,9 @@ public:
 		Projection->perspective(45.0f, aspect, 0.01f, 500.0f);
 
 		int currIndex; // current obj mesh index
+		glm::mat4 cam = GetView();
+		thePartSystem->setCamera(cam);
+		 
 
 		cubeProg->bind();
 		// Draw skybox
@@ -1403,15 +1469,12 @@ public:
 		// Draw grass
 		currIndex = 3;
 		texture3->bind(texProg->getUniform("Texture0"));
-		srand(rseed); // Set random seed, so each render generates same values
-		vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
-		vector<int> sizes = {3, 2, 2, 2};
 		for (int c = 0; c < clusters.size(); c++) {
 			for (int i = 0; i < sizes[c]; i++) {
 				for (int j = 0; j < sizes[c]; j++) {
 					Model->pushMatrix();	
-						float r1 = ((float) (rand() % 100))/100 - 0.5; 
-						float r2 = ((float) (rand() % 100))/100 - 0.5; 
+						float r1 = randoms[c][i][j][0];
+						float r2 = randoms[c][i][j][1];
 						float x = clusters[c].x + (i - sizes[c]/2 + r1) * 0.8; 
 						float z = clusters[c].y + (j - sizes[c]/2 + r2) * 0.8;
 						Model->translate(vec3(x, getHeightBary(x, z) + 0.6, z));
@@ -1490,6 +1553,22 @@ public:
 
 		texProg->unbind();
 
+		// Draw
+		partProg->bind();
+		texture5->bind(partProg->getUniform("alphaTexture"));
+		CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix())));
+		SetView(partProg);
+		// CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())));	
+		// thePartSystem->setCamera(cam);,
+		Model->pushMatrix();
+			Model->loadIdentity();
+			Model->translate(target_pos[0]); 
+			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
+			thePartSystem->drawMe(partProg);
+		Model->popMatrix();
+		thePartSystem->update();
+		partProg->unbind();
+
 		prog->bind();
 		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
 		SetView(prog);
@@ -1564,6 +1643,7 @@ int main(int argc, char *argv[])
 	// may need to initialize or set up different data and state
 
 	application->init(resourceDir);
+	application->initTex(resourceDir);
 	application->initGeom(resourceDir);
 
 	auto lastTime = chrono::high_resolution_clock::now();
