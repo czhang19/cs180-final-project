@@ -11,6 +11,8 @@ Target::Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, 
     gMaxes(maxes)
 {
     Model = make_shared<MatrixStack>();
+    thePartSystem = new particleSys(position);
+    thePartSystem->gpuSetup();
 }
 
 Target::~Target()

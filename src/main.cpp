@@ -53,7 +53,7 @@ public:
 	std::shared_ptr<Program> partProg;
 
 	// the particle system
-	particleSys *thePartSystem;
+	// particleSys *thePartSystem;
 
 	// Our geometry - multi-mesh shapes to be used 
 	vector<vector<shared_ptr<Shape>>> meshes;
@@ -395,8 +395,8 @@ public:
 		partProg->addAttribute("vertColor");
 		partProg->addAttribute("vertTex"); //silence error
 
-		thePartSystem = new particleSys(vec3(0, 0, 0));
-		thePartSystem->gpuSetup();
+		// thePartSystem = new particleSys(vec3(0, 0, 0));
+		// thePartSystem->gpuSetup();
 
 		gTheta = -glm::pi<float>()/2;
 		srand(time(NULL));
@@ -1419,8 +1419,19 @@ public:
 
 		int currIndex; // current obj mesh index
 		glm::mat4 cam = GetView();
-		thePartSystem->setCamera(cam);
-		 
+		// thePartSystem->setCamera(cam);
+		for (int i = 0; i < targets.size(); i++) {
+			targets[i]->setCamera(cam);
+		}
+
+		prog->bind();
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+		SetView(prog);
+		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
+		drawDummy(prog, Model);
+		prog->unbind();
+
+		drawGround(texProg);
 
 		cubeProg->bind();
 		// Draw skybox
@@ -1578,15 +1589,6 @@ public:
 
 		texProg->unbind();
 
-		prog->bind();
-		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-		SetView(prog);
-		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
-		drawDummy(prog, Model);
-		prog->unbind();
-
-		drawGround(texProg);
-
 		// draw particle system LAST
 		partProg->bind();
 		textures[4]->bind(partProg->getUniform("alphaTexture"));
@@ -1596,13 +1598,17 @@ public:
 		// thePartSystem->setCamera(cam);,
 		Model->pushMatrix();
 			Model->loadIdentity();
-			Model->translate(target_pos[0]); 
+			// Model->translate(target_pos[0]); 
 			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			CHECKED_GL_CALL(glEnable(GL_BLEND)); // glDisable(GL_BLEND) in render
-			thePartSystem->drawMe(partProg);
+			// thePartSystem->drawMe(partProg);
+			for (int i = 0; i < targets.size(); i++) {
+				targets[i]->drawParticles(partProg);
+				targets[i]->update();
+			}
 			CHECKED_GL_CALL(glDisable(GL_BLEND)); // glDisable(GL_BLEND) in render
 		Model->popMatrix();
-		thePartSystem->update();
+		// thePartSystem->update();
 		partProg->unbind();
 
 
