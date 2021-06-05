@@ -57,13 +57,12 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
     - [x] Draw dummy sitting on horse
     - [ ] Animate dummy shooting arrow
 - [ ] Add physics-based motion (calculate position + velocity)
-    - [ ] Find middle of sceen, use unproject
     - [x] Animate arrow with velocity
-- [ ] Add particle effects
-    - [x] Add particle system
-    - [ ] Make system for every target? 
+    - [ ] Make quiver with many arrows
+- [x] Add particle effects
 - [ ] Add game menu (start, retry)
 - [ ] Add score on screen
+- [ ] Make website
 
 Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html
 
@@ -73,8 +72,4 @@ Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teachi
 3. How to put text on the screen? 
 
 ## Notes
-1. work on collision detection
-2. Scale model matrix in shader? 
-
-## TODOs
-- collision detection
+1. Scale model matrix for particles in shader? 

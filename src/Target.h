@@ -22,16 +22,16 @@ public:
     void setCamera(mat4 inC) {thePartSystem->setCamera(inC);}
     void update() {thePartSystem->update();}
     void reset(); 
-    void explodeOnContact(vec3 pos, float radius); 
+    bool explodeOnContact(vec3 point, float radius); 
 
 private:
     vec3 pos; // target position
     float rot; // target rotation
     shared_ptr<MatrixStack> Model; 
     vector<shared_ptr<Shape>> meshes;
-    vec3 gMins;
+    vec3 gMins; // bounding box in object space
     vec3 gMaxes;
-    vec3 aabbMins;
+    vec3 aabbMins; // axis-aligned bounding box in world space
     vec3 aabbMaxes;
     mat4 gTransform;
     particleSys *thePartSystem;

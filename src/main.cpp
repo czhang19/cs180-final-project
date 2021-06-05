@@ -274,6 +274,14 @@ public:
 				// }
 			}
 		}	
+
+		// Reset targets
+		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+			for (int i = 0; i < target_pos.size(); i++) {
+				targets[i]->reset();
+			}
+		}
+
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
@@ -1656,7 +1664,11 @@ public:
 			arrow_pos += h*v; 
 			for (int i = 0; i < targets.size(); i++) {
 				if (!targets[i]->exploded) {
-					targets[i]->explodeOnContact(arrow_pos, 1.0f);
+					bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
+					if (b) // if target exploded, stop drawing this arrow
+					{
+						launched = false;
+					}
 				}
 			}
 		}
