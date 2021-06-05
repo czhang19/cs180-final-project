@@ -141,11 +141,11 @@ public:
 	bool launched = false; 
 	float h = 0.01f;
 	vec3 v = vec3(0.0f, 0.0f, 0.0f);
-	vec3 g = vec3(0.0f, -1.0f, 0.0f);
+	vec3 g = vec3(0.0f, -20.0f, 0.0f);
 	vec3 arrow_pos; 
 	float arrowRotationY; 
 	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
-	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 20.0f}; 
+	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 0.0f}; 
 
 	// Grass, Random Scenery
 	vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
@@ -238,8 +238,8 @@ public:
 				mode = 1;
 				gPhi = 0;
 				gTheta = 0;
-				g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
-				fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
+				g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
+				fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
 				float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 3
 				float y = camRadius*sin(gPhi);
 				float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
@@ -259,7 +259,8 @@ public:
 				launched = !launched;
 				if (launched) {
 					arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
-					v = -spherePos*15.0f; 
+					// v = -spherePos*15.0f; 
+					v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*15.0f;
 				}
 			}
 		}	
@@ -322,8 +323,7 @@ public:
 
 		// Enable z-buffer test.
 		CHECKED_GL_CALL(glEnable(GL_DEPTH_TEST));
-		CHECKED_GL_CALL(glEnable(GL_BLEND));
-		// CHECKED_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		CHECKED_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 		CHECKED_GL_CALL(glPointSize(24.0f));
 
 		// Initialize the GLSL program that we will use for local shading
@@ -415,9 +415,11 @@ public:
 	
 	void initGeom(const std::string& resourceDirectory)
 	{
-		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", "/myhorseext.obj", "/dummy.obj", "/ANIMATEDBOW.obj", "/target/ARCHERY_Target.obj"};
-		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", "", "/bow/", ""};
-		vector<bool> hasTextures = {true, true, true, true, true, true, true, true};
+		vector<string> objFiles = {"/stable.obj", "/cube.obj", "/horse/LD_HorseRtime02.obj", "/grass/free grass by adam127.obj", 
+									"/myhorseext.obj", "/dummy.obj", "/ANIMATEDBOW.obj", "/target/ARCHERY_Target.obj",
+									"/sphereWTex.obj"};
+		vector<string> mtlFiles = {"", "", "/horse/", "/grass/", "", "", "/bow/", "", ""};
+		vector<bool> hasTextures = {true, true, true, true, true, true, true, true, true};
 		int numObj = objFiles.size();
 		
 		vector<vector<tinyobj::shape_t>> TOshapes(numObj);
@@ -521,8 +523,8 @@ public:
 		initGround(resourceDirectory);
 
 		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.75, horse_start.y);
-		g_eye = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z+3);
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z);
+		g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
 		g_view = glm::normalize(fixedPoint - g_eye);
 
 		lastFrameTime = glfwGetTime();
@@ -746,11 +748,29 @@ public:
     			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
     			glUniform1f(curS->getUniform("MatShine"), 100.0);
     		break;
-			case 1: // dark brown 
-				r = 191/255.0f;
-				g = 120/255.0f;
-				b = 82/255.0f;
+			case 1: // peach
+				r = 255/255.0f;
+				g = 211/255.0f;
+				b = 175/255.0f;
 				glUniform3f(curS->getUniform("MatAmb"), r/5, g/5, b/5);
+    			glUniform3f(curS->getUniform("MatDif"), r, g, b);
+    			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
+    			glUniform1f(curS->getUniform("MatShine"), 100.0);
+			break;
+			case 2: // dark brown
+				r = 81/255.0f;
+				g = 50/255.0f;
+				b = 32/255.0f;
+				glUniform3f(curS->getUniform("MatAmb"), r/5, g/5, b/5);
+    			glUniform3f(curS->getUniform("MatDif"), r, g, b);
+    			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
+    			glUniform1f(curS->getUniform("MatShine"), 100.0);
+			break;
+			case 3: // olive green
+				r = 100/255.0f;
+				g = 135/255.0f;
+				b = 67/255.0f;
+				glUniform3f(curS->getUniform("MatAmb"), r/10, g/10, b/10);
     			glUniform3f(curS->getUniform("MatDif"), r, g, b);
     			glUniform3f(curS->getUniform("MatSpec"), r/4, g/4, b/4);
     			glUniform1f(curS->getUniform("MatShine"), 100.0);
@@ -823,7 +843,7 @@ public:
 	}
 
 	void updatePosition(float frametime) {
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.2, horse_pos.z); // update for if we switch modes
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z); // update for if we switch modes
 		if (mode == 0) {
 			if (goLeft) { // strafe left
 				g_eye += speed * glm::normalize(glm::cross(g_up, g_view)); 
@@ -1200,7 +1220,6 @@ public:
 			Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
 			Model->rotate(-90*PI/180, vec3(1, 0, 0));
 			scaleToOrigin(Model, currIndex);
-			SetMaterial(prog, 0);
 
 			float bx; // temporary vars for rotating parts
 			float by; 
@@ -1221,10 +1240,12 @@ public:
 					Model->rotate(65*PI/180, vec3(0, 0, 1)); 
 					Model->translate(-temp);
 					setModel(prog, Model);
+					SetMaterial(prog, 1);
 					meshes[currIndex][NECK]->draw(prog);
 					meshes[currIndex][HEAD_D]->draw(prog);
 				Model->popMatrix();
 				setModel(prog, Model);
+				SetMaterial(prog, 3);
 				meshes[currIndex][BELLY]->draw(prog);
 				meshes[currIndex][TORSO]->draw(prog);
 				// draw right arm
@@ -1246,10 +1267,12 @@ public:
 							Model->rotate(-90*PI/180, vec3(0, 1, 0)); 
 							Model->translate(-temp);
 							setModel(prog, Model);
+							SetMaterial(prog, 1);
 							meshes[currIndex][WRIST_R]->draw(prog);
 							meshes[currIndex][HAND_R]->draw(prog);
 						Model->popMatrix();
 						setModel(prog, Model);
+						SetMaterial(prog, 3);
 						meshes[currIndex][ELBOW_R]->draw(prog);
 						meshes[currIndex][FOREARM_R]->draw(prog);
 					Model->popMatrix();
@@ -1274,10 +1297,12 @@ public:
 							Model->rotate(-90*PI/180, vec3(0, 1, 0)); 
 							Model->translate(-temp);
 							setModel(prog, Model);
+							SetMaterial(prog, 1);
 							meshes[currIndex][WRIST_L]->draw(prog);
 							meshes[currIndex][HAND_L]->draw(prog);
 						Model->popMatrix();
 						setModel(prog, Model);
+						SetMaterial(prog, 3);
 						meshes[currIndex][ELBOW_L]->draw(prog);
 						meshes[currIndex][FOREARM_L]->draw(prog);
 					Model->popMatrix();
@@ -1308,12 +1333,14 @@ public:
 						Model->rotate(-30*PI/180, vec3(0, 0, 1)); 
 						Model->translate(-temp);
 						setModel(prog, Model);
+						SetMaterial(prog, 2);
 						meshes[currIndex][ANKLE_R]->draw(prog);
 						meshes[currIndex][FOOT_R]->draw(prog);
 					Model->popMatrix();
 					setModel(prog, Model);
-					meshes[currIndex][KNEE_R]->draw(prog);
 					meshes[currIndex][LOWLEG_R]->draw(prog);
+					SetMaterial(prog, 0);
+					meshes[currIndex][KNEE_R]->draw(prog);
 				Model->popMatrix();
 				setModel(prog, Model);
 				meshes[currIndex][PELVIS_R]->draw(prog);
@@ -1339,12 +1366,14 @@ public:
 						Model->rotate(30*PI/180, vec3(0, 0, 1)); 
 						Model->translate(-temp);
 						setModel(prog, Model);
+						SetMaterial(prog, 2);
 						meshes[currIndex][ANKLE_L]->draw(prog);
 						meshes[currIndex][FOOT_L]->draw(prog);
 					Model->popMatrix();
 					setModel(prog, Model);
-					meshes[currIndex][KNEE_L]->draw(prog);
 					meshes[currIndex][LOWLEG_L]->draw(prog);
+					SetMaterial(prog, 0);
+					meshes[currIndex][KNEE_L]->draw(prog);
 				Model->popMatrix();
 				setModel(prog, Model);
 				meshes[currIndex][PELVIS_L]->draw(prog);
@@ -1484,21 +1513,29 @@ public:
 		Model->popMatrix();
 
 		// draw arrow
-		currIndex = 6;
-		// materials[currIndex][1]->bind(texProg->getUniform("Texture0")); // TODO: add arrow texture
-		textures[6]->bind(texProg->getUniform("Texture0"));
 		if (launched) {
+			// for now, draw ball when in the air
+			currIndex = 8;
+			textures[1]->bind(texProg->getUniform("Texture0"));
 			Model->pushMatrix();
 				Model->translate(arrow_pos);
-				temp = getMidpoint(currIndex, 0);
-				Model->rotate(arrowRotationY-90*PI/180, vec3(0, 1, 0)); 
-				Model->rotate(90*PI/180, vec3(1, 0, 0));
-				Model->scale(vec3(0.25f, 0.25f, 0.25f));
-				Model->translate(-temp); // move to origin
-				setModel(texProg, Model);
-				meshes[currIndex][0]->draw(texProg); // arrow
+				Model->scale(vec3(0.05f, 0.05f, 0.05f));
+				scaleToOrigin(Model, currIndex);
+				setAndDrawModel(texProg, Model, currIndex);
 			Model->popMatrix();
+			// Model->pushMatrix();
+			// 	Model->translate(arrow_pos);
+			// 	temp = getMidpoint(currIndex, 0);
+			// 	Model->rotate(arrowRotationY-90*PI/180, vec3(0, 1, 0)); 
+			// 	Model->rotate(90*PI/180, vec3(1, 0, 0));
+			// 	Model->scale(vec3(0.25f, 0.25f, 0.25f));
+			// 	Model->translate(-temp); // move to origin
+			// 	setModel(texProg, Model);
+			// 	meshes[currIndex][0]->draw(texProg); // arrow
+			// Model->popMatrix();
 		} else { // draw default position
+			currIndex = 6;
+			textures[6]->bind(texProg->getUniform("Texture0"));
 			Model->pushMatrix();
 				if (horseIsMoving)
 					Model->translate(vec3(0, gallopHeight, 0));
@@ -1530,7 +1567,16 @@ public:
 
 		texProg->unbind();
 
-		// Draw
+		prog->bind();
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+		SetView(prog);
+		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
+		drawDummy(prog, Model);
+		prog->unbind();
+
+		drawGround(texProg);
+
+		// draw particle system LAST
 		partProg->bind();
 		textures[4]->bind(partProg->getUniform("alphaTexture"));
 		CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix())));
@@ -1541,19 +1587,13 @@ public:
 			Model->loadIdentity();
 			Model->translate(target_pos[0]); 
 			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
+			CHECKED_GL_CALL(glEnable(GL_BLEND)); // glDisable(GL_BLEND) in render
 			thePartSystem->drawMe(partProg);
+			CHECKED_GL_CALL(glDisable(GL_BLEND)); // glDisable(GL_BLEND) in render
 		Model->popMatrix();
 		thePartSystem->update();
 		partProg->unbind();
 
-		prog->bind();
-		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-		SetView(prog);
-		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
-		drawDummy(prog, Model);
-		prog->unbind();
-
-		drawGround(texProg);
 
 		// Pop matrix stacks.
 		Projection->popMatrix();
@@ -1612,7 +1652,8 @@ int main(int argc, char *argv[])
 	// and GL context, etc.
 
 	WindowManager *windowManager = new WindowManager();
-	windowManager->init(640, 480);
+	// windowManager->init(640, 480);
+	windowManager->init(960, 720);
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 

@@ -60,12 +60,21 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
     - [ ] Find middle of sceen, use unproject
     - [x] Animate arrow with velocity
 - [ ] Add particle effects
+    - [x] Add particle system
+    - [ ] Make system for every target? 
 - [ ] Add game menu (start, retry)
 - [ ] Add score on screen
 
 Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html
 
 ## Issues
-1. How to enable alpha blending with particles without enabling for rest of the scene?
-2. How to use rotations to orient my arrow? How to make arrow more visible? 
+1. How to make particles stay same size in world space? 
+2. How to use rotations to orient my arrow? How to make arrow more visible (add trail)? 
 3. How to put text on the screen? 
+
+## Notes
+1. work on collision detection
+2. Scale model matrix in shader? 
+
+## TODOs
+- collision detection
