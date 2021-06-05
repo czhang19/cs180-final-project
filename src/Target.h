@@ -14,16 +14,15 @@ class Target
 {
 public:
     bool exploded; 
-    
+
     Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, vec3 mins, vec3 maxes);
     virtual ~Target();
     void drawMe(std::shared_ptr<Program> prog); 
     void drawParticles(std::shared_ptr<Program> prog) {thePartSystem->drawMe(prog);}
     void setCamera(mat4 inC) {thePartSystem->setCamera(inC);}
     void update() {thePartSystem->update();}
-    void reset();
-    void explode(); 
-    bool checkContact(vec3 pos, float radius); 
+    void reset(); 
+    void explodeOnContact(vec3 pos, float radius); 
 
 private:
     vec3 pos; // target position
@@ -32,12 +31,15 @@ private:
     vector<shared_ptr<Shape>> meshes;
     vec3 gMins;
     vec3 gMaxes;
+    vec3 aabbMins;
+    vec3 aabbMaxes;
+    mat4 gTransform;
     particleSys *thePartSystem;
 
     void setAndDrawModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack> M); 
-    vec3 originTranslate(); 
     vec3 normalizedScale(); 
     void scaleToOrigin(shared_ptr<MatrixStack>& Model);
+    void explode();
 };
 
 #endif

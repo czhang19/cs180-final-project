@@ -12,8 +12,15 @@ Target::Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, 
     exploded(false)
 {
     Model = make_shared<MatrixStack>();
+    Model->translate(pos);
+    Model->rotate(rot, vec3(0, 1, 0));
+    // Model->scale(vec3(0.25f, 0.25f, 0.25f));
+    scaleToOrigin(Model);
+    gTransform = Model->topMatrix(); 
+
     thePartSystem = new particleSys(position);
     thePartSystem->gpuSetup();
+   
 }
 
 Target::~Target()
@@ -29,8 +36,8 @@ void Target::explode() {
     exploded = true; 
 }
 
-bool Target::checkContact(vec3 pos, float radius) {
-    return false;
+void Target::explodeOnContact(vec3 pos, float radius) {
+    
 }
 
 void Target::setAndDrawModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack> M) {		
@@ -38,14 +45,6 @@ void Target::setAndDrawModel(std::shared_ptr<Program> prog, std::shared_ptr<Matr
     for (shared_ptr<Shape> mesh : meshes) {
         mesh->draw(prog);
     }
-}
-
-// Translate mesh to origin
-vec3 Target::originTranslate() {
-    float Xtrans = (gMins.x + gMaxes.x)/-2;
-    float Ytrans = (gMins.y + gMaxes.y)/-2;
-    float Ztrans = (gMins.z + gMaxes.z)/-2;
-    return vec3(Xtrans, Ytrans, Ztrans);
 }
 
 // Scale mesh to max width of 100
@@ -58,16 +57,13 @@ vec3 Target::normalizedScale() {
 // Translate mesh to origin and scale
 void Target::scaleToOrigin(shared_ptr<MatrixStack>& Model) {
     Model->scale(normalizedScale());
-    Model->translate(originTranslate());
+    Model->translate((gMins + gMaxes)/-2.0f);
 }
 
 void Target::drawMe(std::shared_ptr<Program> prog)
 {
-    Model->pushMatrix();
-        Model->translate(pos);
-        Model->rotate(rot, vec3(0, 1, 0));
-        // Model->scale(vec3(0.25f, 0.25f, 0.25f));
-        scaleToOrigin(Model);
-        setAndDrawModel(prog, Model);
-    Model->popMatrix();
+    glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(gTransform));
+    for (shared_ptr<Shape> mesh : meshes) {
+        mesh->draw(prog);
+    }
 }

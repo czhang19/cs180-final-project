@@ -16,7 +16,8 @@ float particleSys::randFloat(float l, float h)
 
 particleSys::particleSys(vec3 source) {
 
-	numP = 300;	
+	// numP = 300;	
+	numP = 10;
 	t = 0.0f;
 	h = 0.01f;
 	g = vec3(0.0f, -0.98, 0.0f);

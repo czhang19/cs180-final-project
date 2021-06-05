@@ -52,13 +52,9 @@ void Particle::rebirth(float t, vec3 start)
 	m = 1.0f;
   	d = randFloat(0.0f, 0.02f);
 	x = start;
-	// v.x = randFloat(-0.8f, 0.8f);
-	// v.y = randFloat(-0.5f, 2.5f);
-	// v.z = randFloat(0.0f, 0.5f);
 	v.x = randFloat(-2.0f, 2.0f);
 	v.y = randFloat(-2.5f, 2.5f);
 	v.z = randFloat(0.0f, 0.5f);
-	// lifespan = 2.0f; // randFloat(10.0f, 20.0f); 
 	tEnd = t + lifespan;
 	scale = randFloat(0.2, 1.0f);
 	color.a = 1.0f;

@@ -144,7 +144,7 @@ public:
 	vec3 v = vec3(0.0f, 0.0f, 0.0f);
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
 	vec3 arrow_pos; 
-	float arrowRotationY; 
+	// float arrowRotationY; 
 
 	// Targets
 	vector<Target*> targets;
@@ -265,13 +265,13 @@ public:
 					// v = -spherePos*15.0f; 
 					v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*15.0f;
 				}
-				for (int i = 0; i < target_pos.size(); i++) {
-					if (!targets[i]->exploded) {
-						targets[i]->explode();
-					} else {
-						targets[i]->reset();
-					}
-				}
+				// for (int i = 0; i < target_pos.size(); i++) {
+				// 	if (!targets[i]->exploded) {
+				// 		targets[i]->explode();
+				// 	} else {
+				// 		targets[i]->reset();
+				// 	}
+				// }
 			}
 		}	
 	}
@@ -1651,9 +1651,17 @@ public:
 		delta = curr - lastFrameTime;
 		lastFrameTime = curr;
 
-		v += h*g;
-		arrow_pos += h*v; 
-		arrowRotationY = atan2(h*v.x, h*v.z);
+		if (launched) {
+			v += h*g;
+			arrow_pos += h*v; 
+			for (int i = 0; i < targets.size(); i++) {
+				if (!targets[i]->exploded) {
+					targets[i]->explodeOnContact(arrow_pos, 1.0f);
+				}
+			}
+		}
+		
+		// arrowRotationY = atan2(h*v.x, h*v.z);
 	}
 };
 

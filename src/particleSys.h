@@ -35,8 +35,10 @@ private:
 	vec3 start;
 	ParticleSorter sorter;
 	//this is not great that this is hard coded - you can make it better
-	GLfloat points[900]; // xyz
-	GLfloat pointColors[1200]; // rgba
+	GLfloat points[30]; // xyz
+	GLfloat pointColors[40];
+	// GLfloat points[900]; // xyz
+	// GLfloat pointColors[1200]; // rgba
 	mat4 theCamera;
 	unsigned vertArrObj;
 	unsigned vertBuffObj;
