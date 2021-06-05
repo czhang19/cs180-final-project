@@ -20,6 +20,7 @@
 #include "HorseBodyExt.h"
 #include "Dummy.h"
 #include "particleSys.h"
+#include "Target.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -144,6 +145,9 @@ public:
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
 	vec3 arrow_pos; 
 	float arrowRotationY; 
+
+	// Targets
+	vector<Target*> targets;
 	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
 	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 0.0f}; 
 
@@ -521,6 +525,12 @@ public:
 		cubeMapTexture = createSky(resourceDirectory + "/dawn/", faces);
 		
 		initGround(resourceDirectory);
+
+		int currIndex = 7;
+		for (int i = 0; i < target_pos.size(); i++) {
+			Target* t = new Target(target_pos[i], target_rot[i], meshes[currIndex], gMins[currIndex], gMaxes[currIndex]);
+			targets.push_back(t);
+		}
 
 		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.75, horse_start.y);
 		g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
@@ -1556,13 +1566,14 @@ public:
 		currIndex = 7;
 		textures[3]->bind(texProg->getUniform("Texture0"));
 		for (int i = 0; i < target_pos.size(); i++) {
-			Model->pushMatrix();
-				Model->translate(target_pos[i]);
-				Model->rotate(target_rot[i], vec3(0, 1, 0));
-				// Model->scale(vec3(0.25f, 0.25f, 0.25f));
-				scaleToOrigin(Model, currIndex);
-				setAndDrawModel(texProg, Model, currIndex);
-			Model->popMatrix();
+			targets[i]->drawMe(texProg);
+			// Model->pushMatrix();
+			// 	Model->translate(target_pos[i]);
+			// 	Model->rotate(target_rot[i], vec3(0, 1, 0));
+			// 	// Model->scale(vec3(0.25f, 0.25f, 0.25f));
+			// 	scaleToOrigin(Model, currIndex);
+			// 	setAndDrawModel(texProg, Model, currIndex);
+			// Model->popMatrix();
 		}
 
 		texProg->unbind();
