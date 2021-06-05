@@ -13,12 +13,17 @@ using namespace glm;
 class Target
 {
 public:
+    bool exploded; 
+    
     Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, vec3 mins, vec3 maxes);
     virtual ~Target();
     void drawMe(std::shared_ptr<Program> prog); 
     void drawParticles(std::shared_ptr<Program> prog) {thePartSystem->drawMe(prog);}
     void setCamera(mat4 inC) {thePartSystem->setCamera(inC);}
     void update() {thePartSystem->update();}
+    void reset();
+    void explode(); 
+    bool checkContact(vec3 pos, float radius); 
 
 private:
     vec3 pos; // target position

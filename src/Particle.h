@@ -25,7 +25,7 @@ class Texture;
 class Particle
 {
 public:
-	Particle(vec3 pos, vec3 col);
+	Particle(vec3 pos, vec3 col, float duration);
 	virtual ~Particle();
 	void load(float t, vec3 start);
 	void rebirth(float t, vec3 start);

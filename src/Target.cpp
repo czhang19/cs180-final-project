@@ -8,7 +8,8 @@ Target::Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, 
     rot(rotation),
     meshes(shapes),
     gMins(mins),
-    gMaxes(maxes)
+    gMaxes(maxes),
+    exploded(false)
 {
     Model = make_shared<MatrixStack>();
     thePartSystem = new particleSys(position);
@@ -17,6 +18,19 @@ Target::Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, 
 
 Target::~Target()
 {
+}
+
+void Target::reset() {
+    exploded = false; 
+}
+
+void Target::explode() {
+    thePartSystem->reSet();
+    exploded = true; 
+}
+
+bool Target::checkContact(vec3 pos, float radius) {
+    return false;
 }
 
 void Target::setAndDrawModel(std::shared_ptr<Program> prog, std::shared_ptr<MatrixStack> M) {		

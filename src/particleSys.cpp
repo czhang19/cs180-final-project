@@ -22,6 +22,7 @@ particleSys::particleSys(vec3 source) {
 	g = vec3(0.0f, -0.98, 0.0f);
 	start = source;
 	theCamera = glm::mat4(1.0);
+	duration = 3.0f; 
 }
 
 void particleSys::gpuSetup() {
@@ -34,9 +35,9 @@ void particleSys::gpuSetup() {
 
 		vec3 color = vec3(randFloat(0.3f, 1.0f), randFloat(0.3f, 1.0f), randFloat(0.3f, 1.0f));
 
-		auto particle = make_shared<Particle>(start, color);
+		auto particle = make_shared<Particle>(start, color, duration);
 		particles.push_back(particle);
-		particle->load(t, start);
+		// particle->load(t, start);
 	}
 
 	//generate the VAO
@@ -60,6 +61,7 @@ void particleSys::gpuSetup() {
 }
 
 void particleSys::reSet() {
+	t = 0; 
 	for (int i=0; i < numP; i++) {
 		particles[i]->load(t, start);
 	}
@@ -94,45 +96,48 @@ void particleSys::drawMe(std::shared_ptr<Program> prog) {
 
 void particleSys::update() {
 
-	vec3 pos;
-	vec4 col;
+	if (t < duration) {
 
-	//update the particles
-	for(auto particle : particles) {
-		particle->update(t, h, g, start);
+		vec3 pos;
+		vec4 col;
+
+		//update the particles
+		for(auto particle : particles) {
+			particle->update(t, h, g, start);
+		}
+		t += h;
+	
+		// Sort the particles by Z
+		//temp->rotate(camRot, vec3(0, 1, 0));
+		//be sure that camera matrix is updated prior to this update
+		vec3 s, t, sk;
+		vec4 p;
+		quat r;
+		glm::decompose(theCamera, s, r, t, sk, p);
+		sorter.C = glm::toMat4(r); 
+		sort(particles.begin(), particles.end(), sorter);
+
+
+		//go through all the particles and update the CPU buffer
+		for (int i = 0; i < numP; i++) {
+			pos = particles[i]->getPosition();
+			col = particles[i]->getColor();
+			points[i*3+0] =pos.x; 
+			points[i*3+1] =pos.y; 
+			points[i*3+2] =pos.z; 
+			pointColors[i*4+0] =col.r;
+			pointColors[i*4+1] =col.g;
+			pointColors[i*4+2] =col.b;
+			pointColors[i*4+3] =col.a;
+		} 
+
+		//update the GPU data
+		glBindBuffer(GL_ARRAY_BUFFER, vertBuffObj);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(points), NULL, GL_STREAM_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*numP*3, points);
+		glBindBuffer(GL_ARRAY_BUFFER, vertColorObj);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(pointColors), NULL, GL_STREAM_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*numP*4, pointColors);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	t += h;
- 
-	// Sort the particles by Z
-	//temp->rotate(camRot, vec3(0, 1, 0));
-	//be sure that camera matrix is updated prior to this update
-	vec3 s, t, sk;
-	vec4 p;
-	quat r;
-	glm::decompose(theCamera, s, r, t, sk, p);
-	sorter.C = glm::toMat4(r); 
-	sort(particles.begin(), particles.end(), sorter);
-
-
-	//go through all the particles and update the CPU buffer
-	 for (int i = 0; i < numP; i++) {
-		pos = particles[i]->getPosition();
-		col = particles[i]->getColor();
-		points[i*3+0] =pos.x; 
-		points[i*3+1] =pos.y; 
-		points[i*3+2] =pos.z; 
-		pointColors[i*4+0] =col.r;
-		pointColors[i*4+1] =col.g;
-		pointColors[i*4+2] =col.b;
-		pointColors[i*4+3] =col.a;
-	} 
-
-	//update the GPU data
-	glBindBuffer(GL_ARRAY_BUFFER, vertBuffObj);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*numP*3, points);
-	glBindBuffer(GL_ARRAY_BUFFER, vertColorObj);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(pointColors), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*numP*4, pointColors);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

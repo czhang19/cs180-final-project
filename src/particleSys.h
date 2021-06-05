@@ -41,6 +41,7 @@ private:
 	unsigned vertArrObj;
 	unsigned vertBuffObj;
 	unsigned vertColorObj; // ref on GPU
+	float duration;
 
 	float randFloat(float l, float h);
 	

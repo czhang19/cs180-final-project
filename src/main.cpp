@@ -217,7 +217,6 @@ public:
 				goCamera = !goCamera;
 				if (goCamera) {
 					horseIsMoving = true;
-					cout << "horseIsMoving " << horseIsMoving << endl;
 				} else {
 					horseIsMoving = false;
 				}
@@ -265,6 +264,13 @@ public:
 					arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
 					// v = -spherePos*15.0f; 
 					v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*15.0f;
+				}
+				for (int i = 0; i < target_pos.size(); i++) {
+					if (!targets[i]->exploded) {
+						targets[i]->explode();
+					} else {
+						targets[i]->reset();
+					}
 				}
 			}
 		}	
@@ -1419,19 +1425,9 @@ public:
 
 		int currIndex; // current obj mesh index
 		glm::mat4 cam = GetView();
-		// thePartSystem->setCamera(cam);
 		for (int i = 0; i < targets.size(); i++) {
 			targets[i]->setCamera(cam);
 		}
-
-		prog->bind();
-		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
-		SetView(prog);
-		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
-		drawDummy(prog, Model);
-		prog->unbind();
-
-		drawGround(texProg);
 
 		cubeProg->bind();
 		// Draw skybox
@@ -1442,7 +1438,7 @@ public:
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture); // bind the cube map texture
 		Model->pushMatrix();
 			Model->scale(vec3(500, 500, 500));
-			glUniformMatrix4fv(cubeProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
+			// glUniformMatrix4fv(cubeProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			setAndDrawModel(cubeProg, Model, currIndex);
 		Model->popMatrix();
 		glDepthFunc(GL_LESS); // set the depth test back to normal!
@@ -1577,7 +1573,9 @@ public:
 		currIndex = 7;
 		textures[3]->bind(texProg->getUniform("Texture0"));
 		for (int i = 0; i < target_pos.size(); i++) {
-			targets[i]->drawMe(texProg);
+			if (!targets[i]->exploded) {
+				targets[i]->drawMe(texProg);
+			}
 			// Model->pushMatrix();
 			// 	Model->translate(target_pos[i]);
 			// 	Model->rotate(target_rot[i], vec3(0, 1, 0));
@@ -1589,26 +1587,32 @@ public:
 
 		texProg->unbind();
 
+		prog->bind();
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
+		SetView(prog);
+		glUniform3f(prog->getUniform("light"), cos(lightAngle * glm::pi<float>()/180), sin(lightAngle * glm::pi<float>()/180), 0);
+		drawDummy(prog, Model);
+		prog->unbind();
+
+		drawGround(texProg);
+
 		// draw particle system LAST
 		partProg->bind();
 		textures[4]->bind(partProg->getUniform("alphaTexture"));
 		CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix())));
 		SetView(partProg);
-		// CHECKED_GL_CALL(glUniformMatrix4fv(partProg->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())));	
-		// thePartSystem->setCamera(cam);,
 		Model->pushMatrix();
 			Model->loadIdentity();
-			// Model->translate(target_pos[0]); 
 			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
-			CHECKED_GL_CALL(glEnable(GL_BLEND)); // glDisable(GL_BLEND) in render
-			// thePartSystem->drawMe(partProg);
+			CHECKED_GL_CALL(glEnable(GL_BLEND)); 
 			for (int i = 0; i < targets.size(); i++) {
-				targets[i]->drawParticles(partProg);
-				targets[i]->update();
+				if (targets[i]->exploded) {
+					targets[i]->drawParticles(partProg);
+					targets[i]->update();
+				}
 			}
-			CHECKED_GL_CALL(glDisable(GL_BLEND)); // glDisable(GL_BLEND) in render
+			CHECKED_GL_CALL(glDisable(GL_BLEND)); 
 		Model->popMatrix();
-		// thePartSystem->update();
 		partProg->unbind();
 
 
