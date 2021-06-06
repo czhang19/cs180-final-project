@@ -140,15 +140,11 @@ public:
 	vec3 spherePos = vec3(0, 0, camRadius);
 
 	// Arrow Animation
-	// bool launched = false; 
 	float h = 0.01f;
-	// vec3 v = vec3(0.0f, 0.0f, 0.0f);
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
-	// vec3 arrow_pos; 
 	vector<Arrow*> arrows; 
 	int quiverSize = 10; 
 	int notchedArrow = 0; 
-	// float arrowRotationY; 
 
 	// Targets
 	vector<Target*> targets;
@@ -167,7 +163,7 @@ public:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		
-			// toggle move speed
+		// toggle move speed
 		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
 			speed = 0.01;
 		}
@@ -269,13 +265,6 @@ public:
 
 				notchedArrow = (notchedArrow + 1) % quiverSize; // notch next arrow
 				arrows[notchedArrow]->setState(NOTCHED);
-				
-				// launched = !launched;
-				// if (launched) {
-				// 	arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
-				// 	// v = -spherePos*15.0f; 
-				// 	v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f;
-				// }
 			}
 		}	
 
@@ -412,9 +401,6 @@ public:
 		partProg->addAttribute("vertPos");
 		partProg->addAttribute("vertColor");
 		partProg->addAttribute("vertTex"); //silence error
-
-		// thePartSystem = new particleSys(vec3(0, 0, 0));
-		// thePartSystem->gpuSetup();
 
 		gTheta = -glm::pi<float>()/2;
 		srand(time(NULL));
@@ -1579,44 +1565,6 @@ public:
 				Model->popMatrix();
 			}
 		}
-		// if (launched) {
-		// 	// for now, draw ball when in the air
-		// 	currIndex = 8;
-		// 	textures[1]->bind(texProg->getUniform("Texture0"));
-		// 	Model->pushMatrix();
-		// 		Model->translate(arrow_pos);
-		// 		Model->scale(vec3(0.05f, 0.05f, 0.05f));
-		// 		scaleToOrigin(Model, currIndex);
-		// 		setAndDrawModel(texProg, Model, currIndex);
-		// 	Model->popMatrix();
-			// Model->pushMatrix();
-			// 	Model->translate(arrow_pos);
-			// 	temp = getMidpoint(currIndex, 0);
-			// 	Model->rotate(arrowRotationY-90*PI/180, vec3(0, 1, 0)); 
-			// 	Model->rotate(90*PI/180, vec3(1, 0, 0));
-			// 	Model->scale(vec3(0.25f, 0.25f, 0.25f));
-			// 	Model->translate(-temp); // move to origin
-			// 	setModel(texProg, Model);
-			// 	meshes[currIndex][0]->draw(texProg); // arrow
-			// Model->popMatrix();
-		// } else { // draw default position
-		// 	currIndex = 6;
-		// 	textures[6]->bind(texProg->getUniform("Texture0"));
-		// 	Model->pushMatrix();
-		// 		if (horseIsMoving)
-		// 			Model->translate(vec3(0, gallopHeight, 0));
-		// 		Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
-		// 		temp = getMidpoint(currIndex, 0);
-		// 		Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
-		// 		Model->translate(vec3(0.2f, 0, 0.095f)); // move a little forward
-		// 		Model->rotate(5*PI/180, vec3(0, 1, 0));
-		// 		Model->rotate(90*PI/180, vec3(1, 0, 0));
-		// 		Model->scale(vec3(0.25f, 0.25f, 0.25f));
-		// 		Model->translate(-temp); // move to origin
-		// 		setModel(texProg, Model);
-		// 		meshes[currIndex][0]->draw(texProg); // arrow
-		// 	Model->popMatrix();
-		// }
 
 		// draw targets
 		currIndex = 7;
@@ -1625,13 +1573,6 @@ public:
 			if (!targets[i]->exploded) {
 				targets[i]->drawMe(texProg);
 			}
-			// Model->pushMatrix();
-			// 	Model->translate(target_pos[i]);
-			// 	Model->rotate(target_rot[i], vec3(0, 1, 0));
-			// 	// Model->scale(vec3(0.25f, 0.25f, 0.25f));
-			// 	scaleToOrigin(Model, currIndex);
-			// 	setAndDrawModel(texProg, Model, currIndex);
-			// Model->popMatrix();
 		}
 
 		texProg->unbind();
@@ -1716,20 +1657,6 @@ public:
 				}
 			} 
 		}
-
-		// if (launched) {
-		// 	v += h*g;
-		// 	arrow_pos += h*v; 
-		// 	for (int i = 0; i < targets.size(); i++) {
-		// 		if (!targets[i]->exploded) {
-		// 			bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
-		// 			if (b) // if target exploded, stop drawing this arrow
-		// 			{
-		// 				launched = false;
-		// 			}
-		// 		}
-		// 	}
-		// }
 		
 		// arrowRotationY = atan2(h*v.x, h*v.z);
 	}
