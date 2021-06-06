@@ -258,9 +258,31 @@ public:
 			}
 		}	
 
-		// Reset targets
+		// Reset game, including horse_pos, targets and score
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
 			game->restart();
+			horseIsMoving = false;
+			goCamera = false;
+
+			// Reset all spline paths
+			splinepath[0].reset();
+			splinepath[1].reset();
+			splinepath[2].reset();
+			splinepath[3].reset();
+			splinepath[4].reset();
+			splinepath[5].reset();
+
+			// Get initial position and orientation to place character
+			vec3 last_pos = splinepath[0].getPosition();
+			splinepath[0].update(0.01f);
+			horse_pos = splinepath[0].getPosition();
+			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+			float dx = horse_pos.x - last_pos.x;
+			float dz = horse_pos.z - last_pos.z; 
+			if (dx != 0 || dz != 0) 
+				horseRotation = atan2(dx, dz);
+
+			splinepath[0].reset(); // reset after initial small update
 		}
 
 	}
@@ -1427,7 +1449,7 @@ public:
 
 		// Apply perspective projection.
 		Projection->pushMatrix();
-		Projection->perspective(45.0f, aspect, 0.01f, 500.0f);
+		Projection->perspective(45.0f, aspect, 0.01f, 600.0f);
 
 		int currIndex; // current obj mesh index
 		glm::mat4 cam = GetView();
