@@ -131,7 +131,7 @@ public:
 	float currentTurnSpeed = 0;
 
 	// Mode 1 cinematic tour
-	Spline splinepath[5];
+	Spline splinepath[6];
 	bool goCamera = false;
 	// bool enabledFixedTour = false;
 	// bool fixLookAt = false;
@@ -542,11 +542,12 @@ public:
 
 		// Initialize spline paths
 		float y = 0; // doesn't matter; use terrain height for horse_pos
-		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 25);
-		splinepath[1] = Spline(glm::vec3(-60,y,-120), glm::vec3(50,y,-180), glm::vec3(200,y,-170), glm::vec3(170,y,-80), 35);
-		splinepath[2] = Spline(glm::vec3(170,y,-80), glm::vec3(140,y,-50), glm::vec3(130,y,60), glm::vec3(150,y,100), 25);
-		splinepath[3] = Spline(glm::vec3(150,y,100), glm::vec3(120,y,200), glm::vec3(-70,y,200), glm::vec3(-120,y,150), 35);
-		splinepath[4] = Spline(glm::vec3(-120,y,150), glm::vec3(-140,y,120), glm::vec3(-230,y,-70), glm::vec3(-200,y,-120), 40);
+		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-80,y,-80), glm::vec3(-60,y,-120), 10);
+		splinepath[1] = Spline(glm::vec3(-60,y,-120), glm::vec3(-20,y,-150), glm::vec3(60,y,-175), glm::vec3(100,y,-160), 10);
+		splinepath[2] = Spline(glm::vec3(100,y,-160), glm::vec3(160,y,-150), glm::vec3(180,y,-80), glm::vec3(150,y,-20), 10);
+		splinepath[3] = Spline(glm::vec3(150,y,-20), glm::vec3(140,y,20), glm::vec3(160,y,80), glm::vec3(140,y,120), 10);
+		splinepath[4] = Spline(glm::vec3(140,y,120), glm::vec3(120,y,160), glm::vec3(60,y,170), glm::vec3(0,y,160), 10);
+		splinepath[5] = Spline(glm::vec3(0,y,160), glm::vec3(-60,y,130), glm::vec3(-45,y,60), glm::vec3(-30,y,50), 10);
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -925,6 +926,9 @@ public:
 			} else if (!splinepath[4].isDone()){
 				splinepath[4].update(frametime);
 				horse_pos = splinepath[4].getPosition();
+			} else if (!splinepath[5].isDone()){
+				splinepath[5].update(frametime);
+				horse_pos = splinepath[5].getPosition();
 			} else {
 				goCamera = false; // At the end of the track! 
 				horseIsMoving = false;
