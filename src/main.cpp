@@ -103,7 +103,7 @@ public:
 		Mode 0 = normal WASD movement, scroll to look around
 		Mode 1 = no WASD, scroll to rotate around horse
 	*/
-	int mode = 0; 
+	int mode = 1; 
 
 	// Mode 0 camera
 	float gPhi = 0;
@@ -131,7 +131,7 @@ public:
 	float currentTurnSpeed = 0;
 
 	// Mode 1 cinematic tour
-	Spline splinepath[1];
+	Spline splinepath[5];
 	bool goCamera = false;
 	// bool enabledFixedTour = false;
 	// bool fixLookAt = false;
@@ -177,13 +177,13 @@ public:
 			speed = 0.1;
 		}
 		if (action == GLFW_PRESS) {
-			if (key == GLFW_KEY_A) // strafe left
+			if (key == GLFW_KEY_A) // turn left
 				goLeft = true;
-			if (key == GLFW_KEY_D) // strafe right
+			if (key == GLFW_KEY_D) // turn right
 				goRight = true;
-			if (key == GLFW_KEY_S) // dolly backward
+			if (key == GLFW_KEY_S) // go backward
 				goBack = true;
-			if (key == GLFW_KEY_W) // dolly forward
+			if (key == GLFW_KEY_W) // go forward
 				goFront = true;
 			if (key == GLFW_KEY_Q) // go down
 				goDown = true;
@@ -223,20 +223,6 @@ public:
 				} else {
 					horseIsMoving = false;
 				}
-				// if (enabledFixedTour) { 
-				// 	if (goCamera) { 
-				// 		// Start tour
-				// 		fixLookAt = true;
-				// 	} else {
-				// 		// Pause tour
-				// 		fixLookAt = false;
-				// 		// Update camera variables to match current view
-				// 		vec3 direction = glm::normalize(fixedPoint - g_eye);
-				// 		gPhi = asin(direction.y);
-				// 		gTheta = atan2(direction.z, direction.x);
-				// 		g_view = glm::normalize(fixedPoint - g_eye);
-				// 	}
-				// }	
 			}
 		}
 		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
@@ -557,7 +543,10 @@ public:
 		// Initialize spline paths
 		float y = 0; // doesn't matter; use terrain height for horse_pos
 		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-115,y,-100), glm::vec3(-60,y,-120), 25);
-		// splinepath[1] = Spline(glm::vec3(-2,y,-16), glm::vec3(5,y,-18), glm::vec3(20,y,-17), glm::vec3(17,y,-8), 25);
+		splinepath[1] = Spline(glm::vec3(-60,y,-120), glm::vec3(50,y,-180), glm::vec3(200,y,-170), glm::vec3(170,y,-80), 35);
+		splinepath[2] = Spline(glm::vec3(170,y,-80), glm::vec3(140,y,-50), glm::vec3(130,y,60), glm::vec3(150,y,100), 25);
+		splinepath[3] = Spline(glm::vec3(150,y,100), glm::vec3(120,y,200), glm::vec3(-70,y,200), glm::vec3(-120,y,150), 35);
+		splinepath[4] = Spline(glm::vec3(-120,y,150), glm::vec3(-140,y,120), glm::vec3(-230,y,-70), glm::vec3(-200,y,-120), 40);
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -920,32 +909,36 @@ public:
    	void updateUsingCameraPath(float frametime)  {
 
 		if (goCamera) {
+			vec3 last_pos = horse_pos; 
 			if (!splinepath[0].isDone()){
 				splinepath[0].update(frametime);
-				vec3 last_pos = horse_pos; 
 				horse_pos = splinepath[0].getPosition();
-				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
-				float dx = horse_pos.x - last_pos.x;
-				float dz = horse_pos.z - last_pos.z; 
-				if (dx != 0 || dz != 0) 
-					horseRotation = atan2(dx, dz);
-			// } else if (!splinepath[1].isDone()) {
-			// 	splinepath[1].update(frametime);
-			// 	g_eye = splinepath[1].getPosition();
+			} else if (!splinepath[1].isDone()){
+				splinepath[1].update(frametime);
+				horse_pos = splinepath[1].getPosition();
+			} else if (!splinepath[2].isDone()){
+				splinepath[2].update(frametime);
+				horse_pos = splinepath[2].getPosition();
+			} else if (!splinepath[3].isDone()){
+				splinepath[3].update(frametime);
+				horse_pos = splinepath[3].getPosition();
+			} else if (!splinepath[4].isDone()){
+				splinepath[4].update(frametime);
+				horse_pos = splinepath[4].getPosition();
 			} else {
-				splinepath[0].reset();
-				// splinepath[1].reset();
-				// // Once the tour is over, update variables and view
-				// if (enabledFixedTour) {
-				// 	fixLookAt = false;
-				// 	goCamera = false;
-				// 	// Update camera variables to match current view
-				// 	vec3 direction = glm::normalize(fixedPoint - g_eye);
-				// 	gPhi = asin(direction.y);
-				// 	gTheta = atan2(direction.z, direction.x);
-				// 	g_view = glm::normalize(fixedPoint - g_eye);
-				// }
+				goCamera = false; // At the end of the track! 
+				horseIsMoving = false;
+				return;
 			}
+			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+			float dx = horse_pos.x - last_pos.x;
+			float dz = horse_pos.z - last_pos.z; 
+			if (dx != 0 || dz != 0) 
+				horseRotation = atan2(dx, dz);
+			// else {
+			// 	// splinepath[0].reset();
+			// 	// splinepath[1].reset();
+			// }
 		}
    	}
 	
