@@ -7,9 +7,7 @@ Arrow::Arrow() :
 {
 }
 
-Arrow::~Arrow() 
-{
-}
+Arrow::~Arrow() {}
 
 void Arrow::update(float h, vec3 g) 
 {

@@ -2,9 +2,7 @@
 #ifndef ARROW_H
 #define ARROW_H
 
-#include "Shape.h"
-// #include "MatrixStack.h"
-// #include "Program.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using namespace glm; 

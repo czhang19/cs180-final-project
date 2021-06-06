@@ -22,6 +22,7 @@
 #include "particleSys.h"
 #include "Target.h"
 #include "Arrow.h"
+#include "Game.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -139,6 +140,9 @@ public:
 	float camRadius = 3;
 	vec3 spherePos = vec3(0, 0, camRadius);
 
+	// Gameplay
+	Game* game;
+
 	// Arrow Animation
 	float h = 0.01f;
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
@@ -147,7 +151,7 @@ public:
 	int notchedArrow = 0; 
 
 	// Targets
-	vector<Target*> targets;
+	// vector<Target*> targets;
 	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
 	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 0.0f}; 
 
@@ -257,6 +261,7 @@ public:
 			}
 		}
 
+		// Shoot arrow with spacebar
 		if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 			if (mode == 1) { // only allow archery in mode 1
 				arrows[notchedArrow]->setState(LOOSE);
@@ -270,9 +275,10 @@ public:
 
 		// Reset targets
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
-			for (int i = 0; i < target_pos.size(); i++) {
-				targets[i]->reset();
-			}
+			game->restart();
+			// for (int i = 0; i < target_pos.size(); i++) {
+			// 	targets[i]->reset();
+			// }
 		}
 
 	}
@@ -530,11 +536,13 @@ public:
 		
 		initGround(resourceDirectory);
 
+		vector<Target*> targets;
 		int currIndex = 7;
 		for (int i = 0; i < target_pos.size(); i++) {
 			Target* t = new Target(target_pos[i], target_rot[i], meshes[currIndex], gMins[currIndex], gMaxes[currIndex]);
 			targets.push_back(t);
 		}
+		game = new Game(targets);
 
 		for (int i = 0; i < quiverSize; i++) {
 			Arrow* a = new Arrow();
@@ -1430,9 +1438,10 @@ public:
 
 		int currIndex; // current obj mesh index
 		glm::mat4 cam = GetView();
-		for (int i = 0; i < targets.size(); i++) {
-			targets[i]->setCamera(cam);
-		}
+		game->setCamera(cam);
+		// for (int i = 0; i < targets.size(); i++) {
+		// 	targets[i]->setCamera(cam);
+		// }
 
 		cubeProg->bind();
 		// Draw skybox
@@ -1569,11 +1578,12 @@ public:
 		// draw targets
 		currIndex = 7;
 		textures[3]->bind(texProg->getUniform("Texture0"));
-		for (int i = 0; i < target_pos.size(); i++) {
-			if (!targets[i]->exploded) {
-				targets[i]->drawMe(texProg);
-			}
-		}
+		game->drawTargets(texProg);
+		// for (int i = 0; i < target_pos.size(); i++) {
+		// 	if (!targets[i]->exploded) {
+		// 		targets[i]->drawMe(texProg);
+		// 	}
+		// }
 
 		texProg->unbind();
 
@@ -1595,12 +1605,13 @@ public:
 			Model->loadIdentity();
 			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			CHECKED_GL_CALL(glEnable(GL_BLEND)); 
-			for (int i = 0; i < targets.size(); i++) {
-				if (targets[i]->exploded) {
-					targets[i]->drawParticles(partProg);
-					targets[i]->update();
-				}
-			}
+			game->drawPartSystems(partProg);
+			// for (int i = 0; i < targets.size(); i++) {
+			// 	if (targets[i]->exploded) {
+			// 		targets[i]->drawParticles(partProg);
+			// 		targets[i]->update();
+			// 	}
+			// }
 			CHECKED_GL_CALL(glDisable(GL_BLEND)); 
 		Model->popMatrix();
 		partProg->unbind();
@@ -1643,21 +1654,27 @@ public:
 
 		// Check if arrow hit any targets, or the ground
 		for (Arrow* a : arrows) {
-			if (a->getState() == LOOSE) {
+			State s = a->getState();
+			if (s == LOOSE) {
 				a->update(h, g); 
-				vec3 arrow_pos = a->getPosition(); 
-				for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
-					if (a->getState() == LOOSE && !targets[i]->exploded) {
-						bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
-						if (b) 
-						{
-							a->setState(INQUIVER); // if target exploded, stop drawing this arrow
-						}
-					}
-				}
-				if (a->getState() == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) {
+				vec3 arrow_pos = a->getPosition();
+				State newS = game->update(s, arrow_pos);
+				a->setState(newS); 
+				if (newS == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) 
 					a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
-				}
+
+				// for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
+				// 	if (s == LOOSE && !targets[i]->exploded) {
+				// 		bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
+				// 		if (b) 
+				// 		{
+				// 			a->setState(INQUIVER); // if target exploded, stop drawing this arrow
+				// 		}
+				// 	}
+				// }
+				// if (s == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) {
+				// 	a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
+				// }
 			} 
 		}
 		

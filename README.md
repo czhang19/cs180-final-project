@@ -33,7 +33,8 @@ Terrain: https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-ca
 Stable: https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html \
 Horse: https://www.cgtrader.com/free-3d-models/animals/mammal/realtime-horse \
 Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly \
-Bow and Arrow: https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow
+Bow and Arrow: https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow \
+Target: https://www.turbosquid.com/3d-models/3d-archery-model-1552530
 
 ## Testers
 Horse 2: https://www.cgtrader.com/free-3d-models/animals/other/horse-b0fa928c-b67b-43cd-a003-7ea4dc40da77
@@ -43,8 +44,9 @@ Horse 3: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/in
 Jillian Empey's S19 Horse obj and animation frames: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html \
 Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blending \
 Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
-Getting heights of terrain: https://youtu.be/6E2zjfzMs7c
-Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
+Getting heights of terrain: https://youtu.be/6E2zjfzMs7c \
+Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ \
+Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 
 ## Features to Add
 - [ ] Animate horse movement
