@@ -1545,6 +1545,21 @@ public:
 					scaleToOrigin(Model, currIndex);
 					setAndDrawModel(texProg, Model, currIndex);
 				Model->popMatrix();
+				// currIndex = 6;
+				// textures[6]->bind(texProg->getUniform("Texture0"));
+				// Model->pushMatrix();
+				// 	Model->translate(a->getPosition());
+				// 	temp = getMidpoint(currIndex, 0);
+				// 	Model->rotate(a->getRotation()-90*PI/180, vec3(0, 1, 0)); 
+				// 	Model->rotate(90*PI/180, vec3(1, 0, 0));
+				// 	Model->scale(vec3(0.25f, 0.25f, 0.25f));
+				// 	Model->translate(-temp); // move to origin
+				// 	setModel(texProg, Model);
+				// 	meshes[currIndex][0]->draw(texProg); // arrow
+				// 	Model->scale(vec3(0.05f, 0.05f, 0.05f));
+				// 	scaleToOrigin(Model, currIndex);
+				// 	setAndDrawModel(texProg, Model, currIndex);
+				// Model->popMatrix();
 			} else if (s == NOTCHED) {
 				currIndex = 6;
 				textures[6]->bind(texProg->getUniform("Texture0"));

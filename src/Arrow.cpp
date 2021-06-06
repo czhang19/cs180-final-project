@@ -3,7 +3,8 @@
 Arrow::Arrow() :
     pos(vec3(0.0f, 0.0f, 0.0f)),
     state(INQUIVER),
-    v(vec3(0.0f, 0.0f, 0.0f))
+    v(vec3(0.0f, 0.0f, 0.0f)),
+    rot(0.0f)
 {
 }
 
@@ -13,4 +14,5 @@ void Arrow::update(float h, vec3 g)
 {
     v += h*g;
 	pos += h*v;
+    rot = atan2(h*v.x, h*v.z);
 }

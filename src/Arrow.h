@@ -24,6 +24,7 @@ public:
 
     State getState() {return state;}
     vec3 getPosition() {return pos;}
+    float getRotation() {return rot;}
     
     void update(float h, vec3 g); // update pos + velocity when LOOSE
 
@@ -31,6 +32,7 @@ private:
     State state; 
     vec3 pos; // use when LOOSE
     vec3 v; // velocity when LOOSE
+    float rot; 
 };
 
 #endif
