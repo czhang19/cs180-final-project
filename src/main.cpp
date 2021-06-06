@@ -151,7 +151,6 @@ public:
 	int notchedArrow = 0; 
 
 	// Targets
-	// vector<Target*> targets;
 	vector<vec3> target_pos = {vec3(-26, -1, 5), vec3(-85, -0.2, -52.1487), vec3(-52, 0, -66), vec3(-64, 1.2, -120)};
 	vector<float> target_rot = {0.0f, 45.0f, 0.0f, 0.0f}; 
 
@@ -276,9 +275,6 @@ public:
 		// Reset targets
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
 			game->restart();
-			// for (int i = 0; i < target_pos.size(); i++) {
-			// 	targets[i]->reset();
-			// }
 		}
 
 	}
@@ -1439,9 +1435,6 @@ public:
 		int currIndex; // current obj mesh index
 		glm::mat4 cam = GetView();
 		game->setCamera(cam);
-		// for (int i = 0; i < targets.size(); i++) {
-		// 	targets[i]->setCamera(cam);
-		// }
 
 		cubeProg->bind();
 		// Draw skybox
@@ -1579,11 +1572,6 @@ public:
 		currIndex = 7;
 		textures[3]->bind(texProg->getUniform("Texture0"));
 		game->drawTargets(texProg);
-		// for (int i = 0; i < target_pos.size(); i++) {
-		// 	if (!targets[i]->exploded) {
-		// 		targets[i]->drawMe(texProg);
-		// 	}
-		// }
 
 		texProg->unbind();
 
@@ -1606,12 +1594,6 @@ public:
 			glUniformMatrix4fv(partProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			CHECKED_GL_CALL(glEnable(GL_BLEND)); 
 			game->drawPartSystems(partProg);
-			// for (int i = 0; i < targets.size(); i++) {
-			// 	if (targets[i]->exploded) {
-			// 		targets[i]->drawParticles(partProg);
-			// 		targets[i]->update();
-			// 	}
-			// }
 			CHECKED_GL_CALL(glDisable(GL_BLEND)); 
 		Model->popMatrix();
 		partProg->unbind();
@@ -1662,19 +1644,6 @@ public:
 				a->setState(newS); 
 				if (newS == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) 
 					a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
-
-				// for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
-				// 	if (s == LOOSE && !targets[i]->exploded) {
-				// 		bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
-				// 		if (b) 
-				// 		{
-				// 			a->setState(INQUIVER); // if target exploded, stop drawing this arrow
-				// 		}
-				// 	}
-				// }
-				// if (s == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) {
-				// 	a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
-				// }
 			} 
 		}
 		
