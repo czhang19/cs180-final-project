@@ -1641,19 +1641,22 @@ public:
 		delta = curr - lastFrameTime;
 		lastFrameTime = curr;
 
+		// Check if arrow hit any targets, or the ground
 		for (Arrow* a : arrows) {
 			if (a->getState() == LOOSE) {
 				a->update(h, g); 
-				// v += h*g;
-				// arrow_pos += h*v; 
+				vec3 arrow_pos = a->getPosition(); 
 				for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
-					if (!targets[i]->exploded) {
-						bool b = targets[i]->explodeOnContact(a->getPosition(), 1.0f);
-						if (b) // if target exploded, stop drawing this arrow
+					if (a->getState() == LOOSE && !targets[i]->exploded) {
+						bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
+						if (b) 
 						{
-							a->setState(INQUIVER);
+							a->setState(INQUIVER); // if target exploded, stop drawing this arrow
 						}
 					}
+				}
+				if (a->getState() == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) {
+					a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
 				}
 			} 
 		}

@@ -48,7 +48,7 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
 
 ## Features to Add
 - [ ] Animate horse movement
-    - [x] Add horse path through terrain
+    - [ ] Add complete horse path through terrain
     - [x] Horse path should follow height of terrain
     - [ ] Orient horse normals
     - [x] Horse faces the direction it's moving in
@@ -58,7 +58,8 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ
     - [ ] Animate dummy shooting arrow
 - [ ] Add physics-based motion (calculate position + velocity)
     - [x] Animate arrow with velocity
-    - [ ] Make quiver with many arrows
+    - [x] Make quiver with many arrows
+    - [x] Load arrow when it hits the ground
 - [x] Add particle effects
 - [ ] Add game menu (start, retry)
 - [ ] Add score on screen
