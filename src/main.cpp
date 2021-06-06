@@ -21,6 +21,7 @@
 #include "Dummy.h"
 #include "particleSys.h"
 #include "Target.h"
+#include "Arrow.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -139,11 +140,14 @@ public:
 	vec3 spherePos = vec3(0, 0, camRadius);
 
 	// Arrow Animation
-	bool launched = false; 
+	// bool launched = false; 
 	float h = 0.01f;
-	vec3 v = vec3(0.0f, 0.0f, 0.0f);
+	// vec3 v = vec3(0.0f, 0.0f, 0.0f);
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
-	vec3 arrow_pos; 
+	// vec3 arrow_pos; 
+	vector<Arrow*> arrows; 
+	int quiverSize = 10; 
+	int notchedArrow = 0; 
 	// float arrowRotationY; 
 
 	// Targets
@@ -259,18 +263,18 @@ public:
 
 		if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 			if (mode == 1) { // only allow archery in mode 1
-				launched = !launched;
-				if (launched) {
-					arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
-					// v = -spherePos*15.0f; 
-					v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*15.0f;
-				}
-				// for (int i = 0; i < target_pos.size(); i++) {
-				// 	if (!targets[i]->exploded) {
-				// 		targets[i]->explode();
-				// 	} else {
-				// 		targets[i]->reset();
-				// 	}
+				arrows[notchedArrow]->setState(LOOSE);
+				arrows[notchedArrow]->setPosition(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
+				arrows[notchedArrow]->setVelocity((-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f);
+
+				notchedArrow = (notchedArrow + 1) % quiverSize; // notch next arrow
+				arrows[notchedArrow]->setState(NOTCHED);
+				
+				// launched = !launched;
+				// if (launched) {
+				// 	arrow_pos = vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z); 
+				// 	// v = -spherePos*15.0f; 
+				// 	v = (-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f;
 				// }
 			}
 		}	
@@ -544,6 +548,13 @@ public:
 		for (int i = 0; i < target_pos.size(); i++) {
 			Target* t = new Target(target_pos[i], target_rot[i], meshes[currIndex], gMins[currIndex], gMaxes[currIndex]);
 			targets.push_back(t);
+		}
+
+		for (int i = 0; i < quiverSize; i++) {
+			Arrow* a = new Arrow();
+			if (i == 0) // notch first arrow
+				a->setState(NOTCHED); 
+			arrows.push_back(a);
 		}
 
 		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.75, horse_start.y);
@@ -1537,17 +1548,47 @@ public:
 			meshes[currIndex][1]->draw(texProg); // bow
 		Model->popMatrix();
 
-		// draw arrow
-		if (launched) {
-			// for now, draw ball when in the air
-			currIndex = 8;
-			textures[1]->bind(texProg->getUniform("Texture0"));
-			Model->pushMatrix();
-				Model->translate(arrow_pos);
-				Model->scale(vec3(0.05f, 0.05f, 0.05f));
-				scaleToOrigin(Model, currIndex);
-				setAndDrawModel(texProg, Model, currIndex);
-			Model->popMatrix();
+		// draw arrows
+		for (Arrow* a : arrows) {
+			State s = a->getState(); 
+			if (s == LOOSE) {
+				currIndex = 8;
+				textures[1]->bind(texProg->getUniform("Texture0"));
+				Model->pushMatrix();
+					Model->translate(a->getPosition());
+					Model->scale(vec3(0.05f, 0.05f, 0.05f));
+					scaleToOrigin(Model, currIndex);
+					setAndDrawModel(texProg, Model, currIndex);
+				Model->popMatrix();
+			} else if (s == NOTCHED) {
+				currIndex = 6;
+				textures[6]->bind(texProg->getUniform("Texture0"));
+				Model->pushMatrix();
+					if (horseIsMoving)
+						Model->translate(vec3(0, gallopHeight, 0));
+					Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
+					temp = getMidpoint(currIndex, 0);
+					Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
+					Model->translate(vec3(0.2f, 0, 0.095f)); // move a little forward
+					Model->rotate(5*PI/180, vec3(0, 1, 0));
+					Model->rotate(90*PI/180, vec3(1, 0, 0));
+					Model->scale(vec3(0.25f, 0.25f, 0.25f));
+					Model->translate(-temp); // move to origin
+					setModel(texProg, Model);
+					meshes[currIndex][0]->draw(texProg); // index 0 = arrow
+				Model->popMatrix();
+			}
+		}
+		// if (launched) {
+		// 	// for now, draw ball when in the air
+		// 	currIndex = 8;
+		// 	textures[1]->bind(texProg->getUniform("Texture0"));
+		// 	Model->pushMatrix();
+		// 		Model->translate(arrow_pos);
+		// 		Model->scale(vec3(0.05f, 0.05f, 0.05f));
+		// 		scaleToOrigin(Model, currIndex);
+		// 		setAndDrawModel(texProg, Model, currIndex);
+		// 	Model->popMatrix();
 			// Model->pushMatrix();
 			// 	Model->translate(arrow_pos);
 			// 	temp = getMidpoint(currIndex, 0);
@@ -1558,24 +1599,24 @@ public:
 			// 	setModel(texProg, Model);
 			// 	meshes[currIndex][0]->draw(texProg); // arrow
 			// Model->popMatrix();
-		} else { // draw default position
-			currIndex = 6;
-			textures[6]->bind(texProg->getUniform("Texture0"));
-			Model->pushMatrix();
-				if (horseIsMoving)
-					Model->translate(vec3(0, gallopHeight, 0));
-				Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
-				temp = getMidpoint(currIndex, 0);
-				Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
-				Model->translate(vec3(0.2f, 0, 0.095f)); // move a little forward
-				Model->rotate(5*PI/180, vec3(0, 1, 0));
-				Model->rotate(90*PI/180, vec3(1, 0, 0));
-				Model->scale(vec3(0.25f, 0.25f, 0.25f));
-				Model->translate(-temp); // move to origin
-				setModel(texProg, Model);
-				meshes[currIndex][0]->draw(texProg); // arrow
-			Model->popMatrix();
-		}
+		// } else { // draw default position
+		// 	currIndex = 6;
+		// 	textures[6]->bind(texProg->getUniform("Texture0"));
+		// 	Model->pushMatrix();
+		// 		if (horseIsMoving)
+		// 			Model->translate(vec3(0, gallopHeight, 0));
+		// 		Model->translate(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
+		// 		temp = getMidpoint(currIndex, 0);
+		// 		Model->rotate(horseRotation-90*PI/180, vec3(0, 1, 0)); // facing direction
+		// 		Model->translate(vec3(0.2f, 0, 0.095f)); // move a little forward
+		// 		Model->rotate(5*PI/180, vec3(0, 1, 0));
+		// 		Model->rotate(90*PI/180, vec3(1, 0, 0));
+		// 		Model->scale(vec3(0.25f, 0.25f, 0.25f));
+		// 		Model->translate(-temp); // move to origin
+		// 		setModel(texProg, Model);
+		// 		meshes[currIndex][0]->draw(texProg); // arrow
+		// 	Model->popMatrix();
+		// }
 
 		// draw targets
 		currIndex = 7;
@@ -1659,19 +1700,36 @@ public:
 		delta = curr - lastFrameTime;
 		lastFrameTime = curr;
 
-		if (launched) {
-			v += h*g;
-			arrow_pos += h*v; 
-			for (int i = 0; i < targets.size(); i++) {
-				if (!targets[i]->exploded) {
-					bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
-					if (b) // if target exploded, stop drawing this arrow
-					{
-						launched = false;
+		for (Arrow* a : arrows) {
+			if (a->getState() == LOOSE) {
+				a->update(h, g); 
+				// v += h*g;
+				// arrow_pos += h*v; 
+				for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
+					if (!targets[i]->exploded) {
+						bool b = targets[i]->explodeOnContact(a->getPosition(), 1.0f);
+						if (b) // if target exploded, stop drawing this arrow
+						{
+							a->setState(INQUIVER);
+						}
 					}
 				}
-			}
+			} 
 		}
+
+		// if (launched) {
+		// 	v += h*g;
+		// 	arrow_pos += h*v; 
+		// 	for (int i = 0; i < targets.size(); i++) {
+		// 		if (!targets[i]->exploded) {
+		// 			bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
+		// 			if (b) // if target exploded, stop drawing this arrow
+		// 			{
+		// 				launched = false;
+		// 			}
+		// 		}
+		// 	}
+		// }
 		
 		// arrowRotationY = atan2(h*v.x, h*v.z);
 	}
