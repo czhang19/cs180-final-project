@@ -1,4 +1,4 @@
-# Bazooka Horse - Cynthia Zhang
+# Horseback Archery - Cynthia Zhang
 
 ## Controls
 Touchpad Controls

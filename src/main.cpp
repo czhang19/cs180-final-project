@@ -121,7 +121,6 @@ public:
 	vec3 g_eye;
 	vec3 g_up = vec3(0, 1, 0);
 	vec3 horse_pos; // horse_pos is horse's position on the splinepath
-	vec2 horse_start = vec2(-28, 38); // start pos x, z
 
 	// Mode 0 movement
 	bool goLeft = false;
@@ -147,6 +146,7 @@ public:
 
 	// Gameplay
 	Game* game;
+	bool developerMode = 0; // 0 = off, 1 = on
 
 	// Arrow Animation
 	float h = 0.01f;
@@ -185,45 +185,69 @@ public:
 		}
 		
 		// toggle move speed
-		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-			speed = 0.01;
-		}
-		if (key == GLFW_KEY_2 && action == GLFW_PRESS){
-			speed = 0.03;
-		}
-		if (key == GLFW_KEY_3 && action == GLFW_PRESS){
-			speed = 0.1;
-		}
-		if (action == GLFW_PRESS) {
-			if (key == GLFW_KEY_A) // turn left
-				goLeft = true;
-			if (key == GLFW_KEY_D) // turn right
-				goRight = true;
-			if (key == GLFW_KEY_S) // go backward
-				goBack = true;
-			if (key == GLFW_KEY_W) // go forward
-				goFront = true;
-			if (key == GLFW_KEY_Q) // go down
-				goDown = true;
-			if (key == GLFW_KEY_E) // go up
-				goUp = true;
-		} else if (action == GLFW_RELEASE) {
-			if (key == GLFW_KEY_A)
-				goLeft = false;
-			if (key == GLFW_KEY_D)
-				goRight = false;
-			if (key == GLFW_KEY_S) 
-				goBack = false;
-			if (key == GLFW_KEY_W) 
-				goFront = false;
-			if (key == GLFW_KEY_Q) 
-				goDown = false;
-			if (key == GLFW_KEY_E) 
-				goUp = false;
-		}
-		// Debugging tool to determine current eye location
-		if (key == GLFW_KEY_P && action == GLFW_PRESS){
-			cout << "Eye at: " << g_eye.x << ", " << g_eye.y << ", " << g_eye.z << endl;
+		if (developerMode) {	
+			if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+				speed = 0.01;
+			}
+			if (key == GLFW_KEY_2 && action == GLFW_PRESS){
+				speed = 0.03;
+			}
+			if (key == GLFW_KEY_3 && action == GLFW_PRESS){
+				speed = 0.1;
+			}
+			if (action == GLFW_PRESS) {
+				if (key == GLFW_KEY_A) // turn left
+					goLeft = true;
+				if (key == GLFW_KEY_D) // turn right
+					goRight = true;
+				if (key == GLFW_KEY_S) // go backward
+					goBack = true;
+				if (key == GLFW_KEY_W) // go forward
+					goFront = true;
+				if (key == GLFW_KEY_Q) // go down
+					goDown = true;
+				if (key == GLFW_KEY_E) // go up
+					goUp = true;
+			} else if (action == GLFW_RELEASE) {
+				if (key == GLFW_KEY_A)
+					goLeft = false;
+				if (key == GLFW_KEY_D)
+					goRight = false;
+				if (key == GLFW_KEY_S) 
+					goBack = false;
+				if (key == GLFW_KEY_W) 
+					goFront = false;
+				if (key == GLFW_KEY_Q) 
+					goDown = false;
+				if (key == GLFW_KEY_E) 
+					goUp = false;
+			}
+		
+			// Debugging tool to determine current eye location
+			if (key == GLFW_KEY_P && action == GLFW_PRESS){
+				cout << "Eye at: " << g_eye.x << ", " << g_eye.y << ", " << g_eye.z << endl;
+			}
+
+			if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+				if (mode == 0) {
+					mode = 1;
+					gPhi = 0;
+					gTheta = 0;
+					g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
+					fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
+					float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 3
+					float y = camRadius*sin(gPhi);
+					float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+					spherePos = vec3(-x, -y, -z);
+				} else if (mode == 1) {
+					mode = 0;
+					g_eye = fixedPoint + spherePos;
+					vec3 direction = glm::normalize(fixedPoint - g_eye);
+					gPhi = asin(direction.y);
+					gTheta = atan2(direction.z, direction.x);
+					g_view = glm::normalize(fixedPoint - g_eye);
+				}
+			}
 		}
 		// Update draw fill vs draw mesh
 		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
@@ -232,6 +256,7 @@ public:
 		if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
+
 		// Start and stop cinematic tour
 		if (mode == 1) {
 			if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
@@ -241,26 +266,6 @@ public:
 				} else {
 					horseIsMoving = false;
 				}
-			}
-		}
-		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-			if (mode == 0) {
-				mode = 1;
-				gPhi = 0;
-				gTheta = 0;
-				g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
-				fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
-				float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 3
-				float y = camRadius*sin(gPhi);
-				float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
-				spherePos = vec3(-x, -y, -z);
-			} else if (mode == 1) {
-				mode = 0;
-				g_eye = fixedPoint + spherePos;
-				vec3 direction = glm::normalize(fixedPoint - g_eye);
-				gPhi = asin(direction.y);
-				gTheta = atan2(direction.z, direction.x);
-				g_view = glm::normalize(fixedPoint - g_eye);
 			}
 		}
 
@@ -299,11 +304,12 @@ public:
 			vec3 last_pos = splinepath[0].getPosition();
 			splinepath[0].update(0.01f);
 			horse_pos = splinepath[0].getPosition();
-			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
 			float dx = horse_pos.x - last_pos.x;
 			float dz = horse_pos.z - last_pos.z; 
 			if (dx != 0 || dz != 0) 
 				horseRotation = atan2(dx, dz);
+				cout << "in reset game" << endl;
 
 			splinepath[0].reset(); // reset after initial small update
 		}
@@ -594,13 +600,6 @@ public:
 			arrows.push_back(a);
 		}
 
-		horse_pos = vec3(horse_start.x, getHeightBary(horse_start.x, horse_start.y)+0.75, horse_start.y);
-		g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
-		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
-		g_view = glm::normalize(fixedPoint - g_eye);
-
-		lastFrameTime = glfwGetTime();
-
 		// Initialize spline paths
 		float y = 0; // doesn't matter; use terrain height for horse_pos
 		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-80,y,-80), glm::vec3(-60,y,-120), 20/tourLevel);
@@ -609,6 +608,25 @@ public:
 		splinepath[3] = Spline(glm::vec3(150,y,-20), glm::vec3(140,y,20), glm::vec3(160,y,80), glm::vec3(140,y,120), 15/tourLevel);
 		splinepath[4] = Spline(glm::vec3(140,y,120), glm::vec3(120,y,160), glm::vec3(60,y,170), glm::vec3(0,y,160), 20/tourLevel);
 		splinepath[5] = Spline(glm::vec3(0,y,160), glm::vec3(-60,y,130), glm::vec3(-45,y,60), glm::vec3(-30,y,50), 20/tourLevel);
+
+		// Initialize horse orientation and position
+		vec3 last_pos = splinepath[0].getPosition();
+		splinepath[0].update(0.01f);
+		horse_pos = splinepath[0].getPosition();
+		horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
+		float dx = horse_pos.x - last_pos.x;
+		float dz = horse_pos.z - last_pos.z; 
+		if (dx != 0 || dz != 0) 
+			horseRotation = atan2(dx, dz);
+			cout << "in reset game" << endl;
+
+		splinepath[0].reset(); // reset after initial small update
+
+		g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
+		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
+		g_view = glm::normalize(fixedPoint - g_eye);
+
+		lastFrameTime = glfwGetTime();
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -953,17 +971,18 @@ public:
 					horseIsMoving = false;
 					currentSpeed = 0;
 				}
-			}
-			
-			horseRotation += (currentTurnSpeed * delta) * PI/180; 
-			float distance = currentSpeed * delta;
-			float dx = (float) (distance * sin(horseRotation));
-			float dz = (float) (distance * cos(horseRotation));
-			horse_pos.x += dx;
-			horse_pos.z += dz;
 
-			if (!goCamera) 
-				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+				horseRotation += (currentTurnSpeed * delta) * PI/180; 
+				// cout << "in updatePosition" << endl;
+				float distance = currentSpeed * delta;
+				float dx = (float) (distance * sin(horseRotation));
+				float dz = (float) (distance * cos(horseRotation));
+				horse_pos.x += dx;
+				horse_pos.z += dz;
+				// cout << "horse_pos " << horse_pos.x << " " << horse_pos.z << endl;
+
+				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
+			}
 		}
 	}
 
@@ -995,15 +1014,11 @@ public:
 				horseIsMoving = false;
 				return;
 			}
-			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.75;
+			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
 			float dx = horse_pos.x - last_pos.x;
 			float dz = horse_pos.z - last_pos.z; 
 			if (dx != 0 || dz != 0) 
 				horseRotation = atan2(dx, dz);
-			// else {
-			// 	// splinepath[0].reset();
-			// 	// splinepath[1].reset();
-			// }
 		}
    	}
 	
@@ -1525,7 +1540,7 @@ public:
 			scaleToOrigin(Model, currIndex);
 			setAndDrawModel(texProg, Model, currIndex);
 		Model->popMatrix();
-		// Draw horse
+		// Draw horse in the stable
 		currIndex = 2;
 		float horse_x;
 		float horse_y;
