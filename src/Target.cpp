@@ -68,7 +68,7 @@ bool Target::explodeOnContact(vec3 point, float radius) {
                            (z - point.z) * (z - point.z));
 
     if (distance < radius) {
-        cout << pos.x << " " << pos.y << " " << pos.z << endl;
+        // cout << pos.x << " " << pos.y << " " << pos.z << endl;
         explode(); 
         return true;
     }

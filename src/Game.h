@@ -14,6 +14,7 @@ public:
     void drawPartSystems(std::shared_ptr<Program> prog);
     void setCamera(mat4 inC); 
     State update(State s, vec3 arrow_pos, float r);
+    int getScore() {return score;}
 
 private:
     int score; 

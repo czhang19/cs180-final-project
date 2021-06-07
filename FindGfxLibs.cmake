@@ -103,4 +103,3 @@ function(findGLM target)
     target_include_directories(${target} PUBLIC "${GLM_INCLUDE_DIRS}")
     
 endfunction(findGLM)
-

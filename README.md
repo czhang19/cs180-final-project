@@ -47,11 +47,12 @@ Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
 Getting heights of terrain: https://youtu.be/6E2zjfzMs7c \
 Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ \
 Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection \
-Text Rendering: https://learnopengl.com/In-Practice/Text-Rendering
+Text Rendering: https://learnopengl.com/In-Practice/Text-Rendering \
+Text Rendering example (CPE 476 S20 Finding Dory): https://github.com/gmonteir/FishFinder
 
 ## Features to Add
 - [ ] Animate horse movement
-    - [ ] Add complete horse path through terrain
+    - [x] Add complete horse path through terrain
     - [x] Horse path should follow height of terrain
     - [ ] Orient horse normals
     - [x] Horse faces the direction it's moving in

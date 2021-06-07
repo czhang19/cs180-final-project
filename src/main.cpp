@@ -7,6 +7,8 @@
 #include <cmath>       
 #include <glad/glad.h>
 #include <time.h>
+// #include <ft2build.h>
+// #include FT_FREETYPE_H  
 
 #include "GLSL.h"
 #include "Program.h"
@@ -23,6 +25,8 @@
 #include "Target.h"
 #include "Arrow.h"
 #include "Game.h"
+#include "RenderText.h"
+
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -53,6 +57,9 @@ public:
 
 	// Our shader program for particles
 	std::shared_ptr<Program> partProg;
+
+	// Our shader program for text
+	std::shared_ptr<Program> glyphProg;
 
 	// the particle system
 	// particleSys *thePartSystem;
@@ -164,6 +171,11 @@ public:
 	vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
 	vector<int> sizes = {3, 2, 2, 2};
 	vector<vector<vector<vector<float>>>> randoms;
+
+	// Text Rendering
+	RenderText* textRenderer;
+	FT_Library ft;
+	// FT_Face face;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -418,8 +430,24 @@ public:
 		partProg->addAttribute("vertColor");
 		partProg->addAttribute("vertTex"); //silence error
 
+		// Initialize the GLSL program for text rendering
+		glyphProg = make_shared<Program>();
+		glyphProg->setVerbose(true);
+		glyphProg->setShaderNames(resourceDirectory + "/glyph_vert.glsl", resourceDirectory + "/glyph_frag.glsl");
+		if (! glyphProg->init())
+		{
+			std::cerr << "One or more shaders failed to compile... exiting!" << std::endl;
+			exit(1);
+		}
+		glyphProg->addUniform("P");
+		glyphProg->addUniform("text");
+		glyphProg->addUniform("textColor");
+		glyphProg->addAttribute("vertex");
+
 		gTheta = -glm::pi<float>()/2;
 		srand(time(NULL));
+
+		textRenderer = new RenderText(&ft, glyphProg);
 	}
 
 	void initTex(const std::string& resourceDirectory){
@@ -1623,6 +1651,16 @@ public:
 		prog->unbind();
 
 		drawGround(texProg);
+
+		// print score
+		CHECKED_GL_CALL(glEnable(GL_BLEND)); 
+		glyphProg->bind();
+		glm::mat4 proj = glm::ortho(0.0f, static_cast<GLfloat>(width), 0.0f, static_cast<GLfloat>(height));
+		glUniformMatrix4fv(glyphProg->getUniform("P"), 1, GL_FALSE, value_ptr(proj));
+		string score = "Score: " + to_string(game->getScore()); 
+		textRenderer->drawText(0, score, width * 3 / 4, height * 9 / 10, 1.5f, vec3(0.0f, 0.0f, 0.0f));
+		glyphProg->unbind();
+		CHECKED_GL_CALL(glDisable(GL_BLEND));
 
 		// draw particle system LAST
 		partProg->bind();

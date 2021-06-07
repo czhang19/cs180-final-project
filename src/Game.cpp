@@ -52,7 +52,7 @@ State Game::update(State s, vec3 arrow_pos, float r) {
             if (b) 
             {
                 score++;
-                cout << "score = " << score << endl;
+                // cout << "score = " << score << endl;
                 return INQUIVER; // if target exploded, stop drawing this arrow
             }
         }
