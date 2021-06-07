@@ -14,7 +14,7 @@ Target::Target(vec3 position, float rotation, vector<shared_ptr<Shape>> shapes, 
     Model = make_shared<MatrixStack>();
     Model->translate(pos);
     Model->rotate(rot, vec3(0, 1, 0));
-    // Model->scale(vec3(0.25f, 0.25f, 0.25f));
+    Model->scale(vec3(0.2f, 0.2f, 0.2f));
     scaleToOrigin(Model);
     gTransform = Model->topMatrix(); 
 
@@ -54,6 +54,7 @@ bool Target::explodeOnContact(vec3 point, float radius) {
         (point.y >= aabbMins.y && point.y <= aabbMaxes.y) &&
         (point.z >= aabbMins.z && point.z <= aabbMaxes.z))
     { 
+        cout << pos.x << " " << pos.y << " " << pos.z << endl;
         explode(); 
         return true;
     }
