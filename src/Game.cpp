@@ -45,10 +45,10 @@ void Game::setCamera(mat4 inC) {
     }
 }
 
-State Game::update(State s, vec3 arrow_pos) {
+State Game::update(State s, vec3 arrow_pos, float r) {
     for (int i = 0; i < targets.size(); i++) { // check if arrow contacted any target
         if (s == LOOSE && !targets[i]->exploded) {
-            bool b = targets[i]->explodeOnContact(arrow_pos, 1.0f);
+            bool b = targets[i]->explodeOnContact(arrow_pos, r);
             if (b) 
             {
                 score++;

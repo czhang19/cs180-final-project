@@ -132,10 +132,8 @@ public:
 
 	// Mode 1 cinematic tour
 	Spline splinepath[6];
+	float tourLevel = 1.0f; // 1 = easy, 2 = hard
 	bool goCamera = false;
-	// bool enabledFixedTour = false;
-	// bool fixLookAt = false;
-	// vec3 fixedPoint = vec3(-2, -0.7, 2.8);
 	vec3 fixedPoint;
 	float camRadius = 3;
 	vec3 spherePos = vec3(0, 0, camRadius);
@@ -152,15 +150,15 @@ public:
 
 	// Targets
 	vector<vec3> target_pos = {vec3(-41.5, -6, -30.7), vec3(-67.2, -6.8, -70), vec3(-57, -5.4, -144.5), vec3(-1.8, -6.7, 163),
-								vec3(42.8, -6.3, -173.3), vec3(99.8, -6, -173), vec3(138.5, -6.3, -123),
+								vec3(42.8, -6.3, -173.3), vec3(99.8, -6, -173), vec3(138.5, -6.3, -123), vec3(-24.6, -6.6, -136),
 								vec3(166.5, -0.7, -73.9), vec3(167, -4.8, -39.7), vec3(131.7, -6.7, 13.9), vec3(157.8, -1.8, 49.8), 
 								vec3(151.9, -2.9, 122.6), vec3(103.5, -3.4, 162.6), vec3(51, -5.8, 175), vec3(22.2, -5, 153.7), 
-								vec3(-51.5, -5, 124.5), vec3(-29.7, -5.7, 78.7)};
+								vec3(-51.5, -5, 124.5), vec3(-29.7, -5.7, 78.7), vec3(149.8, -5.3, -31.2), vec3(-40.4, -5.8, 56.8)};
 	vector<float> target_rot = {0.0f, 120.0f, 0.0f, -80.0f, 
-								-70.0f, 30.0f, 10.0f,
+								-70.0f, 30.0f, 10.0f, -70.0f,
 								255.0f, 10.0f, 135.0f, 170.0f, 
 								270.0f, 150.0f, 90.0f, 70.0f, 
-								45.0f, 125.0f};
+								45.0f, 125.0f, -10.0f, 0.0f};
 
 	// Grass, Random Scenery
 	vector<vec2> clusters = {vec2(-15.2, 30), vec2(-20.3, 23.8), vec2(-15.8, 25), vec2(-15, 26.4)}; 
@@ -572,12 +570,12 @@ public:
 
 		// Initialize spline paths
 		float y = 0; // doesn't matter; use terrain height for horse_pos
-		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-80,y,-80), glm::vec3(-60,y,-120), 10);
-		splinepath[1] = Spline(glm::vec3(-60,y,-120), glm::vec3(-20,y,-150), glm::vec3(60,y,-175), glm::vec3(100,y,-160), 10);
-		splinepath[2] = Spline(glm::vec3(100,y,-160), glm::vec3(160,y,-150), glm::vec3(180,y,-80), glm::vec3(150,y,-20), 10);
-		splinepath[3] = Spline(glm::vec3(150,y,-20), glm::vec3(140,y,20), glm::vec3(160,y,80), glm::vec3(140,y,120), 10);
-		splinepath[4] = Spline(glm::vec3(140,y,120), glm::vec3(120,y,160), glm::vec3(60,y,170), glm::vec3(0,y,160), 10);
-		splinepath[5] = Spline(glm::vec3(0,y,160), glm::vec3(-60,y,130), glm::vec3(-45,y,60), glm::vec3(-30,y,50), 10);
+		splinepath[0] = Spline(glm::vec3(-20,y,20), glm::vec3(-40,y,0), glm::vec3(-80,y,-80), glm::vec3(-60,y,-120), 20/tourLevel);
+		splinepath[1] = Spline(glm::vec3(-60,y,-120), glm::vec3(-20,y,-150), glm::vec3(60,y,-175), glm::vec3(100,y,-160), 20/tourLevel);
+		splinepath[2] = Spline(glm::vec3(100,y,-160), glm::vec3(160,y,-150), glm::vec3(180,y,-80), glm::vec3(150,y,-20), 20/tourLevel);
+		splinepath[3] = Spline(glm::vec3(150,y,-20), glm::vec3(140,y,20), glm::vec3(160,y,80), glm::vec3(140,y,120), 15/tourLevel);
+		splinepath[4] = Spline(glm::vec3(140,y,120), glm::vec3(120,y,160), glm::vec3(60,y,170), glm::vec3(0,y,160), 20/tourLevel);
+		splinepath[5] = Spline(glm::vec3(0,y,160), glm::vec3(-60,y,130), glm::vec3(-45,y,60), glm::vec3(-30,y,50), 20/tourLevel);
 	}
 
 	void initGround(const std::string& resourceDirectory) {
@@ -852,7 +850,7 @@ public:
 		return vec3(Xtrans, Ytrans, Ztrans);
 	}
 	
-	// Scale mesh to max width of 100
+	// Scale mesh to max width of 10
 	vec3 normalizedScale(int index) {
 		float scale = 10/std::max((gMaxes[index].x-gMins[index].x), 
 			std::max((gMaxes[index].y-gMins[index].y), (gMaxes[index].z-gMins[index].z)));
@@ -1682,7 +1680,7 @@ public:
 			if (s == LOOSE) {
 				a->update(h, g); 
 				vec3 arrow_pos = a->getPosition();
-				State newS = game->update(s, arrow_pos);
+				State newS = game->update(s, arrow_pos, 0.5f);
 				a->setState(newS); 
 				if (newS == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) 
 					a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow

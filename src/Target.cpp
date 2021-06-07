@@ -50,14 +50,29 @@ void Target::explode() {
 // If contacted, explode target and return true
 bool Target::explodeOnContact(vec3 point, float radius) {
     // point vs AABB
-    if ((point.x >= aabbMins.x && point.x <= aabbMaxes.x) &&
-        (point.y >= aabbMins.y && point.y <= aabbMaxes.y) &&
-        (point.z >= aabbMins.z && point.z <= aabbMaxes.z))
-    { 
+    // if ((point.x >= aabbMins.x && point.x <= aabbMaxes.x) &&
+    //     (point.y >= aabbMins.y && point.y <= aabbMaxes.y) &&
+    //     (point.z >= aabbMins.z && point.z <= aabbMaxes.z))
+    // { 
+        // cout << pos.x << " " << pos.y << " " << pos.z << endl;
+        // explode(); 
+        // return true;
+    // }
+    // sphere vs AABB
+    float x = std::max(aabbMins.x, std::min(point.x, aabbMaxes.x));
+    float y = std::max(aabbMins.y, std::min(point.y, aabbMaxes.y));
+    float z = std::max(aabbMins.z, std::min(point.z, aabbMaxes.z));
+
+    float distance = std::sqrt((x - point.x) * (x - point.x) +
+                           (y - point.y) * (y - point.y) +
+                           (z - point.z) * (z - point.z));
+
+    if (distance < radius) {
         cout << pos.x << " " << pos.y << " " << pos.z << endl;
         explode(); 
         return true;
     }
+
     return false;
 }
 

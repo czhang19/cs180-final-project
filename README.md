@@ -46,7 +46,8 @@ Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blendin
 Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
 Getting heights of terrain: https://youtu.be/6E2zjfzMs7c \
 Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ \
-Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection \
+Text Rendering: https://learnopengl.com/In-Practice/Text-Rendering
 
 ## Features to Add
 - [ ] Animate horse movement
