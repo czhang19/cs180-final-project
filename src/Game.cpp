@@ -9,7 +9,10 @@ using namespace glm;
 
 Game::Game(vector<Target*> t) :
     score(0),
-    targets(t)
+    targets(t),
+    shotCount(0),
+    missed(0),
+    accuracy(100.0f)
 { 
 }
 
@@ -17,6 +20,9 @@ Game::~Game() {}
 
 void Game::restart() {
     score = 0;
+    shotCount = 0;
+    missed = 0;
+    accuracy = 100.0f;
     for (int i = 0; i < targets.size(); i++) {
         targets[i]->reset();
     }
@@ -52,10 +58,16 @@ State Game::update(State s, vec3 arrow_pos, float r) {
             if (b) 
             {
                 score++;
+                updateAccuracy();
                 // cout << "score = " << score << endl;
                 return INQUIVER; // if target exploded, stop drawing this arrow
             }
         }
     }
     return s;
+}
+
+void Game::updateAccuracy() {
+    accuracy = 100 * score / (missed + score);
+    cout << "accuracy = " << accuracy << ", score = " << score << ", missed = " << missed << endl;; 
 }

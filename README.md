@@ -1,4 +1,4 @@
-# Final Project - Cynthia Zhang
+# Bazooka Horse - Cynthia Zhang
 
 ## Controls
 Touchpad Controls
@@ -31,14 +31,9 @@ Skybox image: https://hdrihaven.com/hdri/?h=kiara_1_dawn \
 Cubemap generator: https://jaxry.github.io/panorama-to-cubemap/ \
 Terrain: https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-canyon \
 Stable: https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html \
-Horse: https://www.cgtrader.com/free-3d-models/animals/mammal/realtime-horse \
 Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly \
 Bow and Arrow: https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow \
 Target: https://www.turbosquid.com/3d-models/3d-archery-model-1552530
-
-## Testers
-Horse 2: https://www.cgtrader.com/free-3d-models/animals/other/horse-b0fa928c-b67b-43cd-a003-7ea4dc40da77
-Horse 3: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html
 
 ## References
 Jillian Empey's S19 Horse obj and animation frames: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html \
@@ -54,19 +49,17 @@ Text Rendering example (CPE 476 S20 Finding Dory): https://github.com/gmonteir/F
 - [ ] Animate horse movement
     - [x] Add complete horse path through terrain
     - [x] Horse path should follow height of terrain
-    - [ ] Orient horse normals
     - [x] Horse faces the direction it's moving in
-    - [ ] Shade horse material
 - [ ] Animate dummy
     - [x] Draw dummy sitting on horse
-    - [ ] Animate dummy shooting arrow
 - [ ] Add physics-based motion (calculate position + velocity)
     - [x] Animate arrow with velocity
     - [x] Make quiver with many arrows
     - [x] Load arrow when it hits the ground
 - [x] Add particle effects
+- [x] Display crosshairs
 - [ ] Add game menu (start, retry)
-- [ ] Add score on screen
+- [x] Add score on screen
 - [ ] Make website
 
 Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html

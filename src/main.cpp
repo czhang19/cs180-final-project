@@ -139,7 +139,7 @@ public:
 
 	// Mode 1 cinematic tour
 	Spline splinepath[6];
-	float tourLevel = 1.0f; // 1 = easy, 2 = hard
+	float tourLevel = 2.0f; // 1 = easy, 2 = hard
 	bool goCamera = false;
 	vec3 fixedPoint;
 	float camRadius = 3;
@@ -267,11 +267,16 @@ public:
 		// Shoot arrow with spacebar
 		if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 			if (mode == 1) { // only allow archery in mode 1
+				game->shotCount++;
 				arrows[notchedArrow]->setState(LOOSE);
 				arrows[notchedArrow]->setPosition(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
 				arrows[notchedArrow]->setVelocity((-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f);
 
 				notchedArrow = (notchedArrow + 1) % quiverSize; // notch next arrow
+				if (arrows[notchedArrow]->getState() == LOOSE) {
+					game->missed++;
+					game->updateAccuracy();
+				}
 				arrows[notchedArrow]->setState(NOTCHED);
 			}
 		}	
@@ -1497,7 +1502,7 @@ public:
 		SetView(cubeProg); // set up view matrix to include your view transforms
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture); // bind the cube map texture
 		Model->pushMatrix();
-			Model->scale(vec3(500, 500, 500));
+			Model->scale(vec3(g_groundSize, g_groundSize, g_groundSize));
 			// glUniformMatrix4fv(cubeProg->getUniform("M"), 1, GL_FALSE, value_ptr(Model->topMatrix()));
 			setAndDrawModel(cubeProg, Model, currIndex);
 		Model->popMatrix();
@@ -1652,16 +1657,6 @@ public:
 
 		drawGround(texProg);
 
-		// print score
-		CHECKED_GL_CALL(glEnable(GL_BLEND)); 
-		glyphProg->bind();
-		glm::mat4 proj = glm::ortho(0.0f, static_cast<GLfloat>(width), 0.0f, static_cast<GLfloat>(height));
-		glUniformMatrix4fv(glyphProg->getUniform("P"), 1, GL_FALSE, value_ptr(proj));
-		string score = "Score: " + to_string(game->getScore()); 
-		textRenderer->drawText(0, score, width * 3 / 4, height * 9 / 10, 1.5f, vec3(0.0f, 0.0f, 0.0f));
-		glyphProg->unbind();
-		CHECKED_GL_CALL(glDisable(GL_BLEND));
-
 		// draw particle system LAST
 		partProg->bind();
 		textures[4]->bind(partProg->getUniform("alphaTexture"));
@@ -1675,6 +1670,33 @@ public:
 			CHECKED_GL_CALL(glDisable(GL_BLEND)); 
 		Model->popMatrix();
 		partProg->unbind();
+
+		// print score
+		CHECKED_GL_CALL(glEnable(GL_BLEND)); 
+		glyphProg->bind();
+		glm::mat4 proj = glm::ortho(0.0f, static_cast<GLfloat>(width), 0.0f, static_cast<GLfloat>(height));
+		glUniformMatrix4fv(glyphProg->getUniform("P"), 1, GL_FALSE, value_ptr(proj));
+		GameState s = game->getState();
+		if (s == FREEPLAY) {
+			// display instructions and press R to start
+		} else if (s == LOBBY) {
+			// display instructions and prompt when ready
+		} else if (s == INGAME) {
+			// display targets and instructions
+		} else if (s == GAMEOVER) {
+			// display score and "restart button"
+		}
+
+		string score = "Targets hit: " + to_string(game->getScore()) + "/20"; 
+		string shotCount = "Balls fired: " + to_string(game->shotCount); 
+		string accuracy = "Accuracy: " + to_string(game->getAccuracy()) + "%"; 
+		string crosshair = "+";
+		textRenderer->drawText(1, score, width / 2, height * 9 / 10, 1.5f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		textRenderer->drawText(1, shotCount, width / 2, height * 17 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		textRenderer->drawText(1, accuracy, width / 2, height * 16 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		textRenderer->drawText(1, crosshair, width / 2, height / 2, 2.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		glyphProg->unbind();
+		CHECKED_GL_CALL(glDisable(GL_BLEND));
 
 
 		// Pop matrix stacks.
@@ -1712,7 +1734,7 @@ public:
 		delta = curr - lastFrameTime;
 		lastFrameTime = curr;
 
-		// Check if arrow hit any targets, or the ground
+		// Check if arrow hit any targets, or the ground, or is out of bounds
 		for (Arrow* a : arrows) {
 			State s = a->getState();
 			if (s == LOOSE) {
@@ -1720,8 +1742,14 @@ public:
 				vec3 arrow_pos = a->getPosition();
 				State newS = game->update(s, arrow_pos, 0.5f);
 				a->setState(newS); 
-				if (newS == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) 
+				if ((newS == LOOSE && arrow_pos.y < getHeightBary(arrow_pos.x, arrow_pos.z)) ||
+					(newS == LOOSE && (	abs(arrow_pos.x) > g_groundSize / 2 || 
+										abs(arrow_pos.y) > g_groundSize / 2 || 
+										abs(arrow_pos.z) > g_groundSize / 2 ))) { 
 					a->setState(INQUIVER); // if arrow hit the ground, stop drawing this arrow
+					game->missed++;
+					game->updateAccuracy();
+				}
 			} 
 		}
 		
