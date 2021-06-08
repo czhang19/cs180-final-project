@@ -15,6 +15,7 @@ I created a horseback archery game, where the player shoots targets while horseb
 * Texture-mapped meshes from mtl files 
 * Blinn-Phong Shading with directional light
 * Text Rendering 
+* Bezier curve following
 * Skybox
 
 ## Details
