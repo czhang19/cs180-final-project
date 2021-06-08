@@ -58,7 +58,7 @@ Text Rendering example (CPE 476 S20 Finding Dory): https://github.com/gmonteir/F
     - [x] Load arrow when it hits the ground
 - [x] Add particle effects
 - [x] Display crosshairs
-- [ ] Add game menu (start, retry)
+- [x] Add game menu (start, retry)
 - [x] Add score on screen
 - [ ] Make website
 

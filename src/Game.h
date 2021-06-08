@@ -27,6 +27,8 @@ public:
     void updateAccuracy();
     int getScore() {return score;}
     int getAccuracy() {return accuracy;}
+
+    void setState(GameState s) {state = s;}
     GameState getState() {return state;}
 
 private:

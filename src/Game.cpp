@@ -12,7 +12,8 @@ Game::Game(vector<Target*> t) :
     targets(t),
     shotCount(0),
     missed(0),
-    accuracy(100.0f)
+    accuracy(100.0f), 
+    state(LOBBY)
 { 
 }
 

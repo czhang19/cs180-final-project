@@ -114,7 +114,7 @@ public:
 
 	// Mode 0 camera
 	float gPhi = 0;
-	float gTheta = 0;
+	float gTheta = -130 * PI/180;
 	float speed = 0.01;
 	vec3 g_view;
 	vec3 g_strafe = vec3(1, 0, 0);
@@ -272,48 +272,71 @@ public:
 		// Shoot arrow with spacebar
 		if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 			if (mode == 1) { // only allow archery in mode 1
-				game->shotCount++;
-				arrows[notchedArrow]->setState(LOOSE);
-				arrows[notchedArrow]->setPosition(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
-				arrows[notchedArrow]->setVelocity((-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f);
+				GameState state = game->getState();
+				if (state == LOBBY) {
+					game->setState(INGAME);
+					goCamera = true;
+					horseIsMoving = true;
+				} else if (state == INGAME) {
+					game->shotCount++;
+					arrows[notchedArrow]->setState(LOOSE);
+					arrows[notchedArrow]->setPosition(vec3(horse_pos.x, getHeightBary(horse_pos.x, horse_pos.z)+1.68, horse_pos.z));
+					arrows[notchedArrow]->setVelocity((-spherePos - vec3(0.0f, -0.47f, 0.0f))*25.0f);
 
-				notchedArrow = (notchedArrow + 1) % quiverSize; // notch next arrow
-				if (arrows[notchedArrow]->getState() == LOOSE) {
-					game->missed++;
-					game->updateAccuracy();
+					notchedArrow = (notchedArrow + 1) % quiverSize; // notch next arrow
+					if (arrows[notchedArrow]->getState() == LOOSE) {
+						game->missed++;
+						game->updateAccuracy();
+					}
+					arrows[notchedArrow]->setState(NOTCHED);
+				} else if (state == GAMEOVER) {
+					game->setState(LOBBY);
+					game->restart();
+					restart();
 				}
-				arrows[notchedArrow]->setState(NOTCHED);
 			}
 		}	
 
 		// Reset game, including horse_pos, targets and score
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+			game->setState(LOBBY);
 			game->restart();
-			horseIsMoving = false;
-			goCamera = false;
-
-			// Reset all spline paths
-			splinepath[0].reset();
-			splinepath[1].reset();
-			splinepath[2].reset();
-			splinepath[3].reset();
-			splinepath[4].reset();
-			splinepath[5].reset();
-
-			// Get initial position and orientation to place character
-			vec3 last_pos = splinepath[0].getPosition();
-			splinepath[0].update(0.01f);
-			horse_pos = splinepath[0].getPosition();
-			horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
-			float dx = horse_pos.x - last_pos.x;
-			float dz = horse_pos.z - last_pos.z; 
-			if (dx != 0 || dz != 0) 
-				horseRotation = atan2(dx, dz);
-				cout << "in reset game" << endl;
-
-			splinepath[0].reset(); // reset after initial small update
+			restart();
 		}
 
+	}
+	
+	// reset all variable to restart game
+	void restart() {
+		horseIsMoving = false;
+		goCamera = false;
+
+		// Reset all spline paths
+		splinepath[0].reset();
+		splinepath[1].reset();
+		splinepath[2].reset();
+		splinepath[3].reset();
+		splinepath[4].reset();
+		splinepath[5].reset();
+
+		// Get initial position and orientation to place character
+		vec3 last_pos = splinepath[0].getPosition();
+		splinepath[0].update(0.01f);
+		horse_pos = splinepath[0].getPosition();
+		horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
+		float dx = horse_pos.x - last_pos.x;
+		float dz = horse_pos.z - last_pos.z; 
+		if (dx != 0 || dz != 0) 
+			horseRotation = atan2(dx, dz);
+			cout << "in reset game" << endl;
+
+		splinepath[0].reset(); // reset after initial small update
+
+		gTheta = -130 * PI/180;
+		float x = camRadius*cos(gPhi)*cos(gTheta); // radius is 0.3
+		float y = camRadius*sin(gPhi);
+		float z = camRadius*cos(gPhi)*cos((glm::pi<float>()/2)-gTheta);
+		spherePos = vec3(-x, -y, -z);
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
@@ -455,7 +478,6 @@ public:
 		glyphProg->addUniform("textColor");
 		glyphProg->addAttribute("vertex");
 
-		gTheta = -glm::pi<float>()/2;
 		srand(time(NULL));
 
 		textRenderer = new RenderText(&ft, glyphProg);
@@ -610,17 +632,7 @@ public:
 		splinepath[5] = Spline(glm::vec3(0,y,160), glm::vec3(-60,y,130), glm::vec3(-45,y,60), glm::vec3(-30,y,50), 20/tourLevel);
 
 		// Initialize horse orientation and position
-		vec3 last_pos = splinepath[0].getPosition();
-		splinepath[0].update(0.01f);
-		horse_pos = splinepath[0].getPosition();
-		horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
-		float dx = horse_pos.x - last_pos.x;
-		float dz = horse_pos.z - last_pos.z; 
-		if (dx != 0 || dz != 0) 
-			horseRotation = atan2(dx, dz);
-			cout << "in reset game" << endl;
-
-		splinepath[0].reset(); // reset after initial small update
+		restart();
 
 		g_eye = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z+3);
 		fixedPoint = vec3(horse_pos.x, horse_pos.y+1.4, horse_pos.z);
@@ -1010,6 +1022,7 @@ public:
 				splinepath[5].update(frametime);
 				horse_pos = splinepath[5].getPosition();
 			} else {
+				game->setState(GAMEOVER);
 				goCamera = false; // At the end of the track! 
 				horseIsMoving = false;
 				return;
@@ -1694,22 +1707,44 @@ public:
 		GameState s = game->getState();
 		if (s == FREEPLAY) {
 			// display instructions and press R to start
-		} else if (s == LOBBY) {
+		} else if (s == LOBBY) 
+		{
 			// display instructions and prompt when ready
-		} else if (s == INGAME) {
+			string title = "HORSEBACK ARCHERY";
+			string goal = "Hit as many targets as you can!";
+			string controls = "Controls - touchpad scroll to aim, press spacebar to shoot";
+			string instr = "Press spacebar to begin";
+			textRenderer->drawText(1, title, width / 2, height * 18 / 20, 2.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, goal, width / 2, height * 17 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, controls, width / 2, height * 16 / 20, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, instr, width / 2, height * 15 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER	
+		} else if (s == INGAME) 
+		{
 			// display targets and instructions
-		} else if (s == GAMEOVER) {
+			string score = "Targets hit: " + to_string(game->getScore()) + "/20"; 
+			string shotCount = "Balls fired: " + to_string(game->shotCount); 
+			string accuracy = "Accuracy: " + to_string(game->getAccuracy()) + "%"; 
+			string crosshair = "+";
+			textRenderer->drawText(1, score, width / 2, height * 9 / 10, 1.5f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, shotCount, width / 2, height * 17 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, accuracy, width / 2, height * 16 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, crosshair, width / 2, height / 2, 2.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		} else if (s == GAMEOVER) 
+		{
 			// display score and "restart button"
+			string level = "Level Completed!";
+			string restart = "Press spacebar to restart";
+			string score = "Targets hit: " + to_string(game->getScore()) + "/20"; 
+			string shotCount = "Balls fired: " + to_string(game->shotCount); 
+			string accuracy = "Accuracy: " + to_string(game->getAccuracy()) + "%"; 
+			textRenderer->drawText(1, level, width / 2, height * 18 / 20, 1.5f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, restart, width / 2, height * 17 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, score, width * 5 / 6, height * 37 / 40, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, shotCount, width * 5 / 6, height * 35.5 / 40, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+			textRenderer->drawText(1, accuracy, width * 5 / 6, height * 34 / 40, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
 		}
 
-		string score = "Targets hit: " + to_string(game->getScore()) + "/20"; 
-		string shotCount = "Balls fired: " + to_string(game->shotCount); 
-		string accuracy = "Accuracy: " + to_string(game->getAccuracy()) + "%"; 
-		string crosshair = "+";
-		textRenderer->drawText(1, score, width / 2, height * 9 / 10, 1.5f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
-		textRenderer->drawText(1, shotCount, width / 2, height * 17 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
-		textRenderer->drawText(1, accuracy, width / 2, height * 16 / 20, 1.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
-		textRenderer->drawText(1, crosshair, width / 2, height / 2, 2.0f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
+		
 		glyphProg->unbind();
 		CHECKED_GL_CALL(glDisable(GL_BLEND));
 
