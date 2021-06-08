@@ -138,7 +138,7 @@ public:
 
 	// Mode 1 cinematic tour
 	Spline splinepath[6];
-	float tourLevel = 2.0f; // 1 = easy, 2 = hard
+	float tourLevel = 1.0f; // 1 = easy, 2 = hard
 	bool goCamera = false;
 	vec3 fixedPoint;
 	float camRadius = 3;
@@ -328,7 +328,7 @@ public:
 		float dz = horse_pos.z - last_pos.z; 
 		if (dx != 0 || dz != 0) 
 			horseRotation = atan2(dx, dz);
-			cout << "in reset game" << endl;
+			// cout << "in reset game" << endl;
 
 		splinepath[0].reset(); // reset after initial small update
 
@@ -985,14 +985,11 @@ public:
 				}
 
 				horseRotation += (currentTurnSpeed * delta) * PI/180; 
-				// cout << "in updatePosition" << endl;
 				float distance = currentSpeed * delta;
 				float dx = (float) (distance * sin(horseRotation));
 				float dz = (float) (distance * cos(horseRotation));
 				horse_pos.x += dx;
 				horse_pos.z += dz;
-				// cout << "horse_pos " << horse_pos.x << " " << horse_pos.z << endl;
-
 				horse_pos.y = getHeightBary(horse_pos.x, horse_pos.z)+0.85;
 			}
 		}
@@ -1634,21 +1631,6 @@ public:
 					scaleToOrigin(Model, currIndex);
 					setAndDrawModel(texProg, Model, currIndex);
 				Model->popMatrix();
-				// currIndex = 6;
-				// textures[6]->bind(texProg->getUniform("Texture0"));
-				// Model->pushMatrix();
-				// 	Model->translate(a->getPosition());
-				// 	temp = getMidpoint(currIndex, 0);
-				// 	Model->rotate(a->getRotation()-90*PI/180, vec3(0, 1, 0)); 
-				// 	Model->rotate(90*PI/180, vec3(1, 0, 0));
-				// 	Model->scale(vec3(0.25f, 0.25f, 0.25f));
-				// 	Model->translate(-temp); // move to origin
-				// 	setModel(texProg, Model);
-				// 	meshes[currIndex][0]->draw(texProg); // arrow
-				// 	Model->scale(vec3(0.05f, 0.05f, 0.05f));
-				// 	scaleToOrigin(Model, currIndex);
-				// 	setAndDrawModel(texProg, Model, currIndex);
-				// Model->popMatrix();
 			} else if (s == NOTCHED) {
 				currIndex = 6;
 				textures[6]->bind(texProg->getUniform("Texture0"));
@@ -1743,11 +1725,8 @@ public:
 			textRenderer->drawText(1, shotCount, width * 5 / 6, height * 35.5 / 40, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
 			textRenderer->drawText(1, accuracy, width * 5 / 6, height * 34 / 40, 0.7f, vec3(0.0f, 0.0f, 0.0f)); // 1 = CENTER
 		}
-
-		
 		glyphProg->unbind();
 		CHECKED_GL_CALL(glDisable(GL_BLEND));
-
 
 		// Pop matrix stacks.
 		Projection->popMatrix();
@@ -1802,8 +1781,6 @@ public:
 				}
 			} 
 		}
-		
-		// arrowRotationY = atan2(h*v.x, h*v.z);
 	}
 };
 

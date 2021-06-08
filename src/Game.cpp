@@ -70,5 +70,5 @@ State Game::update(State s, vec3 arrow_pos, float r) {
 
 void Game::updateAccuracy() {
     accuracy = 100 * score / (missed + score);
-    cout << "accuracy = " << accuracy << ", score = " << score << ", missed = " << missed << endl;; 
+    // cout << "accuracy = " << accuracy << ", score = " << score << ", missed = " << missed << endl;; 
 }
