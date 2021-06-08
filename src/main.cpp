@@ -152,7 +152,7 @@ public:
 	float h = 0.01f;
 	vec3 g = vec3(0.0f, -20.0f, 0.0f);
 	vector<Arrow*> arrows; 
-	int quiverSize = 10; 
+	int quiverSize = 11; 
 	int notchedArrow = 0; 
 
 	// Targets
@@ -258,14 +258,22 @@ public:
 		}
 
 		// Start and stop cinematic tour
-		if (mode == 1) {
-			if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-				goCamera = !goCamera;
-				if (goCamera) {
-					horseIsMoving = true;
-				} else {
-					horseIsMoving = false;
+		if (developerMode) {
+			if (mode == 1) {
+				if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+					goCamera = !goCamera;
+					if (goCamera) {
+						horseIsMoving = true;
+					} else {
+						horseIsMoving = false;
+					}
 				}
+			}
+			// Reset game, including horse_pos, targets and score
+			if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+				game->setState(LOBBY);
+				game->restart();
+				restart();
 			}
 		}
 
@@ -295,15 +303,7 @@ public:
 					restart();
 				}
 			}
-		}	
-
-		// Reset game, including horse_pos, targets and score
-		if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
-			game->setState(LOBBY);
-			game->restart();
-			restart();
 		}
-
 	}
 	
 	// reset all variable to restart game

@@ -1,34 +1,46 @@
 # Horseback Archery - Cynthia Zhang
 
-## Controls
-Touchpad Controls
-* two-finger scroll - look around
+## Description
+I created a horseback archery game, where the player shoots targets while horseback riding. The horse gallops automatically on a fixed path through the terrain, while the player can look around and aim by touchpad scrolling. There are 20 targets total, and at the end of the course, the game displays the number of targets hit, balls shot, and accuracy.
 
-Keyboard Controls
-* Movement
-    * A - strafe left
-    * D - strafe right
-    * S - dolly backward
-    * W - dolly forward
-* Cinematic Tour
-    * G - start or pause tour
-    * L - toggle "fixed tour" (can only toggle when not in tour); when "fixed tour" is off, the user can look around during the tour
-* Lighting
-    * Q - increase light angle (light travels in -x direction)
-    * E - decrease light angle (light travels in +x direction)
-* Debugging
-    * Z - draw mesh 
-    * P - print current eye location in world space
+## Demo
+(insert video)
 
-## Program Features
+## Technologies
+* Hierarchically-modeled and keyframed animation
+* Physics-based animation - projectile motion
+* Collision detection
+* Particle systems
+* Third-person follow camera
+* Height-mapped terrain from a DEM
+* Texture-mapped meshes from mtl files 
+* Blinn-Phong Shading with directional light
+* Text Rendering 
 * Skybox
-* Texture-mapped meshes (terrain, stable) and from .mtl files (horse, grass)
-* Height-mapped terrain from a DEM (/resources/canyon/diffuse.png)
-* Semi-randomized placement of grass on top of terrain
+
+## Details
+
+The horse and character are both hierarchically modeled. The horse is animated with keyframes, as well as with global translations and rotations for more natural up-down motion. The horse always stays at the height of the ground, faces the direction it's moving, and gallops smoothly by following a Bezier curve. 
+
+I implemented the arrows as balls, because arrows were difficult to visually track after being fired and creating an arrow trail was outside the scope of my project. The balls follow projectile motion after being fired and return to the player's quiver upon contact with either a target, the ground, or the skybox (out of bounds). The player can have at most 10 balls in the air at a time. For each additional ball launched, the first-launched ball in the air is reused and counts as a "missed" shot towards the player's accuracy. 
+
+There is collision detection between the balls and the targets, using sphere vs AABB (axis aligned bounding box) collision detection. Upon collision, the target explodes into a particle system and the ball returns to the player's quiver. 
+
+The game camera stays at a fixed radius around the horse with vertical constraints. It is controlled with pitch and yaw by the player's touchpad scroll. The center of the sphere is a point above the horse at all times. 
+
+The entire terrain is generated from a DEM (digital elevation model), with an accompanying texture file. Although my DEM had a very high resolution of 4096x4096, I had trouble passing all these pixel values to the GPU in an array, so I instead used every 16th pixel, essentially converting my heightmap image to 256x256. Then for object placement on my terrain, I used barycentric coordinates to retrieve the terrain height anywhere in my world.   
+
+Using the FreeType library, I implemented text rendering to display game instructions, stats and the final score. I also used a text-rendered plus sign for the crosshairs. 
+
+## Controls
+* Two-finger Touchpad Scroll - look around / aim
+* SPACEBAR - shoot ball / begin or restart game
+* Z - draw mesh 
+* ESC - close game
 
 ## Resources 
 Skybox image: https://hdrihaven.com/hdri/?h=kiara_1_dawn \
-Cubemap generator: https://jaxry.github.io/panorama-to-cubemap/ \
+Cubemap generator (for skybox faces): https://jaxry.github.io/panorama-to-cubemap/ \
 Terrain: https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-canyon \
 Stable: https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html \
 Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly \
@@ -44,30 +56,3 @@ Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ \
 Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection \
 Text Rendering: https://learnopengl.com/In-Practice/Text-Rendering \
 Text Rendering example (CPE 476 S20 Finding Dory): https://github.com/gmonteir/FishFinder
-
-## Features to Add
-- [ ] Animate horse movement
-    - [x] Add complete horse path through terrain
-    - [x] Horse path should follow height of terrain
-    - [x] Horse faces the direction it's moving in
-- [ ] Animate dummy
-    - [x] Draw dummy sitting on horse
-- [ ] Add physics-based motion (calculate position + velocity)
-    - [x] Animate arrow with velocity
-    - [x] Make quiver with many arrows
-    - [x] Load arrow when it hits the ground
-- [x] Add particle effects
-- [x] Display crosshairs
-- [x] Add game menu (start, retry)
-- [x] Add score on screen
-- [ ] Make website
-
-Past Graphics Proj Examples: http://users.csc.calpoly.edu/~zwood/teaching/teaching.html
-
-## Issues
-1. How to make particles stay same size in world space? 
-2. How to use rotations to orient my arrow? How to make arrow more visible (add trail)? 
-3. How to put text on the screen? 
-
-## Notes
-1. Scale model matrix for particles in shader? 
