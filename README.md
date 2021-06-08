@@ -3,8 +3,7 @@
 ## Description
 I created a horseback archery game, where the player shoots targets while horseback riding. The horse gallops automatically on a fixed path through the terrain, while the player can look around and aim by touchpad scrolling. There are 20 targets total, and at the end of the course, the game displays the number of targets hit, balls shot, and accuracy.
 
-## Demo
-(insert video)
+## [Demo Video](https://youtu.be/VqhD6X1noTE)
 
 ## Technologies
 * Hierarchically-modeled and keyframed animation
@@ -38,21 +37,14 @@ Using the FreeType library, I implemented text rendering to display game instruc
 * Z - draw mesh 
 * ESC - close game
 
-## Resources 
-Skybox image: https://hdrihaven.com/hdri/?h=kiara_1_dawn \
-Cubemap generator (for skybox faces): https://jaxry.github.io/panorama-to-cubemap/ \
-Terrain: https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-canyon \
-Stable: https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html \
-Grass: https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly \
-Bow and Arrow: https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow \
-Target: https://www.turbosquid.com/3d-models/3d-archery-model-1552530
 
-## References
-Jillian Empey's S19 Horse obj and animation frames: http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html \
-Texture image with alpha values: https://learnopengl.com/Advanced-OpenGL/Blending \
-Terrain from heightmap: https://youtu.be/O9v6olrHPwI \
-Getting heights of terrain: https://youtu.be/6E2zjfzMs7c \
-Horse movement/orientation: https://youtu.be/d-kuzyCkjoQ \
-Collision detection: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection \
-Text Rendering: https://learnopengl.com/In-Practice/Text-Rendering \
-Text Rendering example (CPE 476 S20 Finding Dory): https://github.com/gmonteir/FishFinder
+## Resources
+Skybox [image](https://hdrihaven.com/hdri/?h=kiara_1_dawn) and [cubemap generator](https://jaxry.github.io/panorama-to-cubemap/) (for skybox faces) \
+3D OBJ models from CGtrader, TurboSquid and Free3D: [terrain](https://www.cgtrader.com/free-3d-models/exterior/landscape/high-poly-canyon), [stable](https://free3d.com/3d-model/rusticsmallhorsestable-2010-v1--153472.html), [grass](https://www.cgtrader.com/free-3d-models/plant/grass/grass-lowpoly), [bow and arrow](https://www.cgtrader.com/free-3d-models/military/other/wooden-bow-and-arrow), [target](https://www.turbosquid.com/3d-models/3d-archery-model-1552530) \
+3D Horse and Animation frames from Jillian Empey's [website](http://users.csc.calpoly.edu/~zwood/teaching/csc471/finalS19/jeempey/index.html)
+
+## References and Tutorials
+Learn OpenGL tutorials: [blending](https://learnopengl.com/Advanced-OpenGL/Blending) and [text rendering](https://learnopengl.com/In-Practice/Text-Rendering) \
+Thin Matrix OpenGL 3D Java Game Tutorials: [terrain heightmaps](https://youtu.be/O9v6olrHPwI), [terrain collision detection](https://youtu.be/6E2zjfzMs7c), [player movement and orientation](https://youtu.be/d-kuzyCkjoQ) \
+CPE 476 S20 Finding Dory (text rendering example): [github repo](https://github.com/gmonteir/FishFinder) \
+Collision detection with AABB: [tutorial](https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection)
